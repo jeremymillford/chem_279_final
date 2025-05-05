@@ -278,20 +278,20 @@ double get_gamma_elem(const Atom &A, const Atom &B){
 
     double sum = 0; 
     for (int k = 0; k < NUM_CONTRACTED; k++){
-        for (int k_prime = 0; k_prime < NUM_CONTRACTED; k_prime++){
-            for (int l = 0; l < NUM_CONTRACTED; l++){
-                for (int l_prime = 0; l_prime < NUM_CONTRACTED; l_prime++){
-                    double temp = 1;
-                    temp *= A_s.cont_coef.at(k)       * A_s.norm_coef.at(k); 
-                    temp *= A_s.cont_coef.at(k_prime) * A_s.norm_coef.at(k_prime); 
-                    temp *= B_s.cont_coef.at(l)       * B_s.norm_coef.at(l); 
-                    temp *= B_s.cont_coef.at(l_prime) * B_s.norm_coef.at(l_prime); 
-                    temp *= get_integral_over_4_gaussians(A_s.gaussians.at(k), A_s.gaussians.at(k_prime), B_s.gaussians.at(l), B_s.gaussians.at(l_prime));
-                    temp *= CONVERSION_FACTOR;
-                    sum += temp; 
-                }
-            }
-        }
+    for (int k_prime = 0; k_prime < NUM_CONTRACTED; k_prime++){
+    for (int l = 0; l < NUM_CONTRACTED; l++){
+    for (int l_prime = 0; l_prime < NUM_CONTRACTED; l_prime++){
+        double temp = 1;
+        temp *= A_s.cont_coef.at(k)       * A_s.norm_coef.at(k); 
+        temp *= A_s.cont_coef.at(k_prime) * A_s.norm_coef.at(k_prime); 
+        temp *= B_s.cont_coef.at(l)       * B_s.norm_coef.at(l); 
+        temp *= B_s.cont_coef.at(l_prime) * B_s.norm_coef.at(l_prime); 
+        temp *= get_integral_over_4_gaussians(A_s.gaussians.at(k), A_s.gaussians.at(k_prime), B_s.gaussians.at(l), B_s.gaussians.at(l_prime));
+        temp *= CONVERSION_FACTOR;
+        sum += temp; 
+    }
+    }
+    }
     }
     return sum; 
 }
@@ -316,28 +316,28 @@ Eigen::Vector3d get_gamma_dir_elem(const Atom &A, const Atom &B, const std::vect
     Eigen::Vector3d dir = Eigen::Vector3d::Zero();
 
     for (int k = 0; k < NUM_CONTRACTED; k++){
-        for (int k_prime = 0; k_prime < NUM_CONTRACTED; k_prime++){
-            for (int l = 0;  l < NUM_CONTRACTED; l++){
-                for (int l_prime = 0; l_prime < NUM_CONTRACTED; l_prime++){
-                    double coeff = 1; 
-                    coeff *= A_s.norm_coef.at(k); 
-                    coeff *= A_s.cont_coef.at(k); 
-                    coeff *= A_s.norm_coef.at(k_prime); 
-                    coeff *= A_s.cont_coef.at(k_prime);
-                    coeff *= B_s.norm_coef.at(l); 
-                    coeff *= B_s.cont_coef.at(l); 
-                    coeff *= B_s.norm_coef.at(l_prime); 
-                    coeff *= B_s.cont_coef.at(l_prime);
-                    coeff *= CONVERSION_FACTOR; 
-                    dir += coeff * get_integral_over_4_gaussians_dir(
-                        A_s.gaussians.at(k), 
-                        A_s.gaussians.at(k_prime), 
-                        B_s.gaussians.at(l), 
-                        B_s.gaussians.at(l_prime)
-                        ); 
-                }
-            }
-        }
+    for (int k_prime = 0; k_prime < NUM_CONTRACTED; k_prime++){
+    for (int l = 0;  l < NUM_CONTRACTED; l++){
+    for (int l_prime = 0; l_prime < NUM_CONTRACTED; l_prime++){
+        double coeff = 1; 
+        coeff *= A_s.norm_coef.at(k); 
+        coeff *= A_s.cont_coef.at(k); 
+        coeff *= A_s.norm_coef.at(k_prime); 
+        coeff *= A_s.cont_coef.at(k_prime);
+        coeff *= B_s.norm_coef.at(l); 
+        coeff *= B_s.cont_coef.at(l); 
+        coeff *= B_s.norm_coef.at(l_prime); 
+        coeff *= B_s.cont_coef.at(l_prime);
+        coeff *= CONVERSION_FACTOR; 
+        dir += coeff * get_integral_over_4_gaussians_dir(
+            A_s.gaussians.at(k), 
+            A_s.gaussians.at(k_prime), 
+            B_s.gaussians.at(l), 
+            B_s.gaussians.at(l_prime)
+            ); 
+    }
+    }
+    }
     }
     return dir; 
 }
@@ -353,19 +353,19 @@ Eigen::VectorX<Eigen::MatrixX<Eigen::Vector3d>> get_vector_of_gamma_dir(
     Eigen::VectorX<Eigen::MatrixX<Eigen::Vector3d>> vector_of_gamma_dir (N);
     for (int C = 0; C < N; C++){
         Eigen::MatrixX<Eigen::Vector3d> dir (n,n); 
-        for (int A = 0; A < N; A++){
-            for (int B = 0; B < N; B++){
-                if (((A == C) && (C != B)) || ((B == C) && (C != A))){
-                    dir(A,B) = get_gamma_dir_elem(atoms.at(A), atoms.at(B), vcg);
-                }
-            }
-        }
+    for (int A = 0; A < N; A++){
+    for (int B = 0; B < N; B++){
+    if (((A == C) && (C != B)) || ((B == C) && (C != A))){
+        dir(A,B) = get_gamma_dir_elem(atoms.at(A), atoms.at(B), vcg);
+    }
+    }
+    }
         vector_of_gamma_dir(C) = dir; 
     }
     return vector_of_gamma_dir; 
 }
 
-// This returns an Eigen::VectorXd of Atomic Density 
+// This returns an Eigen::VectorXd ov Atomic Density 
 Eigen::VectorXd get_p_total_atomwise_diag_vector(const std::vector<Atom> &atoms,  const Eigen::MatrixXd &p_total) {
     Eigen::VectorXd p_total_diag_atomwise_sum = Eigen::VectorXd::Zero(atoms.size());
     int p_total_index = 0; 
@@ -412,9 +412,8 @@ double get_on_diagonal_fock_element(
     result += get_third_term_of_1_4(A, atoms, p_total_atomwise_diag_vector, gamma);
     return result; 
 }
-//* changes made here */
+
 // returns the on diagonal fock matrix element for the spin type
-// Offdiagonal Calculation fro INDO 
 double get_off_diagonal_fock_element(
     const int A, 
     const int B, 
@@ -426,16 +425,7 @@ double get_off_diagonal_fock_element(
     const Eigen::MatrixXd &gamma
     )
 {
-    int num_basis = get_vector_of_contracted_gaussians(atoms).size();
-    double offdiag_elem = 0.0;
-    for (int k = 0; k < num_basis; k++) { 
-        for (int l = 0; l < num_basis; l++) {
-            if (k == u && l == v) {
-                offdiag_elem += p_spin(k, l) * gamma(A, B);
-            }
-        }
-    }
-    return ((0.5) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))) - offdiag_elem;  
+    return ((0.5) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))) - (p_spin(u,v) * gamma(A,B));  
 }
 
 // get the fock matrix 
@@ -489,43 +479,6 @@ double get_third_term_of_2_6(
         }
     } 
     return sum; 
-}
-//* changes made here */
-// Started Ionization Energies for MINDO/3 calc of H_Core
-double ionization_energy(AO &AtomicOrbital) {
-    int I = 0.0;
-    if (AtomicOrbital.get_label() == "H1s") {
-        I = -13.598;
-    }
-    else if (AtomicOrbital.get_label() == "C2s") {
-        I = -11.260;
-    }
-    else if (AtomicOrbital.get_label() == "C2p") {
-        I = -24.383;
-    }
-    else if (AtomicOrbital.get_label() == "N2s") {
-        I = 14.534;
-    }
-    else if (AtomicOrbital.get_label() == "N2p") {
-        I = -29.601;
-    }
-    else if (AtomicOrbital.get_label() == "O2s") {
-        I = -13.618;
-    }
-    else if (AtomicOrbital.get_label() == "O2p") {
-        I = -35.117;
-    }
-    else if (AtomicOrbital.get_label() == "F2s") {
-        I = -17.423;
-    }
-    else if (AtomicOrbital.get_label() == "F2p") {
-        I = -34.971;
-    }
-    else {
-        throw invalid_argument("Unknown AO type");
-    }
-
-    return I; 
 }
 
 
@@ -589,6 +542,69 @@ Eigen::MatrixXd get_hamiltonian(const std::vector<Atom> &atoms){
     }
     
     return h; 
+}
+
+//New method to run CNDO with overlap
+std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
+run_CNDO_S(const std::vector<Atom>& atoms, int p, int q) {
+    using namespace std;
+    using namespace Eigen;
+
+    // Step 1: Build basis and overlap
+    auto basis = get_vector_of_contracted_gaussians(atoms);
+    MatrixXd S = make_overlap_matrix(basis);
+    int dim = S.rows();
+
+    // Step 2: Initial guess: core Hamiltonian diagonal
+    MatrixXd F = MatrixXd::Zero(dim, dim);
+    for (int i = 0; i < dim; i++) {
+        F(i, i) = get_half_IuAu(basis[i]);
+    }
+
+    MatrixXd P = MatrixXd::Zero(dim, dim);
+    MatrixXd C_old = MatrixXd::Zero(dim, dim);
+
+    const double SCF_TOL = 1e-8;
+    const int MAX_ITER = 100;
+
+    for (int iter = 0; iter < MAX_ITER; iter++) {
+        // Step 3: Solve generalized eigenvalue problem FC = SCε
+        GeneralizedSelfAdjointEigenSolver<MatrixXd> ges(F, S);
+        if (ges.info() != Success) {
+            throw std::runtime_error("Generalized eigensolver failed");
+        }
+
+        MatrixXd C = ges.eigenvectors();
+        VectorXd eps = ges.eigenvalues();
+
+        // Step 4: Build new density matrix
+        P = build_density_matrix(p + q, C);  // number of occupied orbitals
+
+        // Step 5: Build new Fock matrix
+        MatrixXd F_new = MatrixXd::Zero(dim, dim);
+        for (int u = 0; u < dim; u++) {
+            for (int v = 0; v < dim; v++) {
+                double H_uv = (u == v) ? get_half_IuAu(basis[u]) : get_B(atoms[u / 4]); // hacky atom guess
+                double G_uv = 0.0;
+                for (int A = 0; A < atoms.size(); A++) {
+                    for (int B = 0; B < atoms.size(); B++) {
+                        G_uv += P(u, v) * get_gamma_elem(atoms[A], atoms[B]);
+                    }
+                }
+                F_new(u, v) = H_uv + G_uv;
+            }
+        }
+
+        // Step 6: Check convergence
+        if (close_enough(F, F_new, SCF_TOL)) {
+            std::cout << "SCF converged in " << iter + 1 << " iterations." << std::endl;
+            return {F_new, P};
+        }
+
+        F = F_new;
+    }
+
+    throw std::runtime_error("SCF did not converge after max iterations.");
 }
 
 // runs CNDO2 till convergence and returns the density matricies 
@@ -699,10 +715,10 @@ Eigen::Vector3d get_analytical_s_dir_elem_per_gaussian(const Gaussian &g1, const
 Eigen::Vector3d get_analytical_s_dir_elem(const ContractedGaussian &cg1, const ContractedGaussian &cg2){
     Eigen::Vector3d dir = Eigen::Vector3d::Zero(); 
     for (int k = 0; k < NUM_CONTRACTED; k++){
-        for (int l = 0; l < NUM_CONTRACTED; l++){
-            double coeff = cg1.cont_coef.at(k) * cg1.norm_coef.at(k) * cg2.cont_coef.at(l) * cg2.norm_coef.at(l); 
-            dir += coeff * get_analytical_s_dir_elem_per_gaussian(cg1.gaussians.at(k), cg2.gaussians.at(l)); 
-        }
+    for (int l = 0; l < NUM_CONTRACTED; l++){
+        double coeff = cg1.cont_coef.at(k) * cg1.norm_coef.at(k) * cg2.cont_coef.at(l) * cg2.norm_coef.at(l); 
+        dir += coeff * get_analytical_s_dir_elem_per_gaussian(cg1.gaussians.at(k), cg2.gaussians.at(l)); 
+    }
     }
     return dir; 
 }
@@ -839,9 +855,9 @@ double get_y_elem_last_term(
     int num_A_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(A).z_num).at("Valence Orbitals")); 
     int num_B_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(B).z_num).at("Valence Orbitals")); 
     for (int i = u; i < u + num_A_orbitals; i++){
-        for (int j = v; j < v + num_B_orbitals; j++){
-            result += (p_alpha(i,j) * p_alpha(i,j)) + (p_beta(i,j) * p_beta(i,j));
-        }
+    for (int j = v; j < v + num_B_orbitals; j++){
+        result += (p_alpha(i,j) * p_alpha(i,j)) + (p_beta(i,j) * p_beta(i,j));
+    }
     }
     return result; 
 }

@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/cndo2_overlap.dir/main.cpp.o CMakeFiles/cndo2_overlap.dir/Molecule.cpp.o CMakeFiles/cndo2_overlap.dir/Overlap.cpp.o CMakeFiles/cndo2_overlap.dir/SCF.cpp.o -o cndo2_overlap  -larmadillo 
