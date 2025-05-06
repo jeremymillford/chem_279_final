@@ -26,35 +26,44 @@ const std::map<int, std::map<std::string, double>> PARAMETER_INFO {
         {"Valence Orbitals", 1},
         {"Valence Atoms", 1},
         {"1/2(Is + As)", 7.176},
-        {"-Beta", 9.0},  
+        {"-Beta", 9.0},
+        {"I1", -13.598}  
     }},
     {6, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 4},
         {"1/2(Is + As)", 14.051},
         {"1/2(Ip + Ap)", 5.572},
-        {"-Beta", 21},  
+        {"-Beta", 21},
+        {"I1", -11.260},
+        {"I2", -24.383}  
     }},
     {7, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 5},
         {"1/2(Is + As)", 19.316},
         {"1/2(Ip + Ap)", 7.275},
-        {"-Beta", 25},  
+        {"-Beta", 25}, 
+        {"I1", -14.534},
+        {"I2", -29.601} 
     }},
     {8, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 6},
         {"1/2(Is + As)", 25.390},
         {"1/2(Ip + Ap)", 9.111},
-        {"-Beta", 31},  
+        {"-Beta", 31}, 
+        {"I1", -13.618},
+        {"I2", -35.117} 
     }},
     {9, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 7},
         {"1/2(Is + As)", 32.272},
         {"1/2(Ip + Ap)", 11.080},
-        {"-Beta", 39},  
+        {"-Beta", 39},
+        {"I1", -17.423},
+        {"I2", -34.971}  
     }},
 };
 
@@ -217,6 +226,10 @@ double get_half_IuAu(const ContractedGaussian &cg){
         return PARAMETER_INFO.at(cg.z_num).at("1/2(Ip + Ap)"); // / CONVERSION_FACTOR; 
     }
     throw std::runtime_error("The shell for this contracted gaussian isn't s or p");   
+}
+
+double get_IE(const ContractedGaussian &cg) {
+    return PARAMETER_INFO.at(cg.z_num).at("I1"); 
 }
 
 // Helper to get B_? in atomic units 
@@ -491,43 +504,6 @@ double get_third_term_of_2_6(
     return sum; 
 }
 
-// Started Ionization Energies for MINDO/3 calc of H_Core
-double ionization_energy(AO &AtomicOrbital) {
-    int I = 0.0;
-    if (AtomicOrbital.get_label() == "H1s") {
-        I = -13.598;
-    }
-    else if (AtomicOrbital.get_label() == "C2s") {
-        I = -11.260;
-    }
-    else if (AtomicOrbital.get_label() == "C2p") {
-        I = -24.383;
-    }
-    else if (AtomicOrbital.get_label() == "N2s") {
-        I = 14.534;
-    }
-    else if (AtomicOrbital.get_label() == "N2p") {
-        I = -29.601;
-    }
-    else if (AtomicOrbital.get_label() == "O2s") {
-        I = -13.618;
-    }
-    else if (AtomicOrbital.get_label() == "O2p") {
-        I = -35.117;
-    }
-    else if (AtomicOrbital.get_label() == "F2s") {
-        I = -17.423;
-    }
-    else if (AtomicOrbital.get_label() == "F2p") {
-        I = -34.971;
-    }
-    else {
-        throw invalid_argument("Unknown AO type");
-    }
-
-    return I; 
-}
-
 
 // Helper function which returns an on diagonal element of the hamiltonian 
 double get_on_diagonal_hamiltonian_element(
@@ -553,7 +529,9 @@ double get_off_diagonal_hamiltonian_element(
     const std::vector<Atom> &atoms,
     const Eigen::MatrixXd &s)
 {
-    return ((0.5) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))); 
+    std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms); 
+
+    return ((get_IE(vcg[u]) + get_IE(vcg[v]) / CONVERSION_FACTOR) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))); 
 }
 
 
