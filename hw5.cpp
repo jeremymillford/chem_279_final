@@ -1,8 +1,9 @@
 #include <Eigen/Dense>
 #include <iomanip>
-#include <numeric>
 #include <iostream>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include "hw5_utils.cpp"
 #include "Gaussian.cpp"
@@ -10,122 +11,114 @@
 
 int main(int argc, char** argv) {
     if (argc < 2) {
-        throw std::runtime_error("No Filepath was supplied");
+        throw std::runtime_error("No input file supplied");
     }
 
     std::string filepath = argv[1];
-    std::vector<Atom> atoms = parse_file(filepath, false);  
-    auto vcg = get_vector_of_contracted_gaussians(atoms);  
+    auto atoms = parse_file(filepath, false);
 
-    int p, q = 0;
+    int p = 0, q = 0;
     if (argc == 4 || argc == 5) {
         p = std::stoi(argv[2]);
         q = std::stoi(argv[3]);
     } else if (argc == 2) {
-        int total_valence_electrons = get_total_valence_electrons(atoms);
-        q = total_valence_electrons / 2;
-        p = total_valence_electrons - q;
+        int total = get_total_valence_electrons(atoms);
+        q = total / 2;
+        p = total - q;
     } else {
         throw std::invalid_argument("argc must be 2, 4, or 5");
     }
 
-    // Overlap flag handling
-    bool use_overlap = false;
-    if (argc == 5 && std::string(argv[4]) == "--overlap") {
-        use_overlap = true;
-    }
+    bool use_overlap = (argc == 5 && std::string(argv[4]) == "--overlap");
 
-    // Run CNDO or CNDO+S based on flag
-    std::pair<Eigen::MatrixXd, Eigen::MatrixXd> res;
+    Eigen::MatrixXd F, P;
     if (use_overlap) {
-        res = run_CNDO_S(atoms, p, q);
+        std::tie(F, P) = run_CNDO_S(atoms, p, q);
         std::cout << "[CNDO/S] Using overlap matrix (S ≠ I)" << std::endl;
     } else {
-        res = run_CNDO2(atoms, p, q);
+        std::tie(F, P) = run_CNDO2(atoms, p, q);
         std::cout << "[CNDO/2] Using orthonormal basis (S = I)" << std::endl;
     }
 
-    auto p_alpha = res.first;
-    auto p_beta  = res.second;
+    // Energies
+    double nuclear_energy   = get_nuclear_repulsion_energy(atoms);
+    Eigen::MatrixXd H       = get_hamiltonian(atoms);
+    double electron_energy = scf_electronic_energy(P, H, F);
 
-    double nuclear_energy = get_nuclear_repulsion_energy(atoms);
-    double total_energy   = E_CNDO2(p_alpha, p_beta, atoms);
+    std::cout << "Nuclear Repulsion Energy is "   << nuclear_energy   << " eV." << std::endl;
+    std::cout << "Electron Energy is "           << electron_energy << " eV." << std::endl;
 
-    const int n = vcg.size();
-    const int N = atoms.size();
-
-    std::cout << "Nuclear Repulsion Energy is " << nuclear_energy << " eV." << std::endl;
-    std::cout << "Electron Energy is " << (total_energy - nuclear_energy) << " eV." << std::endl;
-
-    // Fock matrix diagnostics
+    // Fock diagnostics
     std::cout << "x" << std::endl;
-    auto x = get_x_matrix(atoms, p_alpha + p_beta);
-    std::cout << x << std::endl;
+    auto X = get_x_matrix(atoms, P);
+    std::cout << X << std::endl;
 
     std::cout << "y" << std::endl;
-    auto y = get_y_matrix(atoms, p_alpha, p_beta);
-    std::cout << y << std::endl;
+    auto Y = get_y_matrix(atoms, P, P);
+    std::cout << Y << std::endl;
 
     // Overlap derivative diagnostics
     std::cout << "Suv_RA (A is the center of u)" << std::endl;
-    auto vec_s_dir = get_vector_of_s_dir(atoms, vcg);
-    auto s_dir     = vec_s_dir(0);
-    for (int u = 0; u < n; ++u) {
-        for (int v = 0; v < n; ++v) {
+    auto vcg      = get_vector_of_contracted_gaussians(atoms);
+    auto vec_s    = get_vector_of_s_dir(atoms, vcg);
+    auto s_dir    = vec_s(0);
+    int dim       = (int)vcg.size();
+    for (int u = 0; u < dim; ++u) {
+        for (int v = 0; v < dim; ++v) {
+            auto d = s_dir(u,v);
             std::cout
-                << std::fixed << std::setprecision(4) << std::showpos
                 << "s " << u << v << "/dR_A"
-                << " is: x:" << s_dir(u,v).x()
-                << " y:"  << s_dir(u,v).y()
-                << " z:"  << s_dir(u,v).z()
+                << " x:" << d.x()
+                << " y:" << d.y()
+                << " z:" << d.z()
                 << std::endl;
         }
     }
 
     std::cout << "gammaAB_RA" << std::endl;
-    auto vec_of_gamma_dir = get_vector_of_gamma_dir(atoms, vcg);
-    auto gamma_dir        = vec_of_gamma_dir(0);
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < N; ++j) {
+    auto vec_g    = get_vector_of_gamma_dir(atoms, vcg);
+    auto g_dir    = vec_g(0);
+    int Natom     = (int)atoms.size();
+    for (int i = 0; i < Natom; ++i) {
+        for (int j = 0; j < Natom; ++j) {
+            auto d = g_dir(i,j);
             std::cout
-                << std::fixed << std::setprecision(4) << std::showpos
                 << "gamma " << i << j << "/dR_A"
-                << " is: x:" << gamma_dir(i,j).x()
-                << " y:"  << gamma_dir(i,j).y()
-                << " z:"  << gamma_dir(i,j).z()
+                << " x:" << d.x()
+                << " y:" << d.y()
+                << " z:" << d.z()
                 << std::endl;
         }
     }
 
+    // Gradient diagnostics
     std::cout << "gradient (Nuclear part)" << std::endl;
-    auto nuclear_energy_dir = get_nuclear_energy_dir(atoms);
-    for (auto grad : nuclear_energy_dir) {
+    auto nuc_grad = get_nuclear_energy_dir(atoms);
+    for (auto& g : nuc_grad) {
         std::cout
-            << "x: " << grad.x()
-            << " y: " << grad.y()
-            << " z: " << grad.z()
+            << "x: " << g.x()
+            << " y: " << g.y()
+            << " z: " << g.z()
             << std::endl;
     }
 
-    auto vec_of_energy_dir = get_energy_derivative_vector(atoms, vcg, p_alpha, p_beta);
     std::cout << "gradient (Electron part)" << std::endl;
-    for (int i = 0; i < vec_of_energy_dir.size(); ++i) {
-        auto nuclear_dir  = nuclear_energy_dir(i);
-        auto energy_dir   = vec_of_energy_dir(i);
-        auto electron_dir = energy_dir - nuclear_dir;
+    auto ele_grad = get_energy_derivative_vector(atoms, vcg, P, P);
+    for (int i = 0; i < (int)ele_grad.size(); ++i) {
+        auto total_g = ele_grad[i] - nuc_grad[i];
         std::cout
-            << "x: " << electron_dir.x()
-            << " y: " << electron_dir.y()
-            << " z: " << electron_dir.z()
+            << "x: " << total_g.x()
+            << " y: " << total_g.y()
+            << " z: " << total_g.z()
             << std::endl;
     }
 
     std::cout << "gradient" << std::endl;
-    for (auto energy_dir : vec_of_energy_dir) {
+    for (auto& g : ele_grad) {
         std::cout
-            << "x: " << energy_dir.x()
-            << " y: " << energy_dir.y()
-            << " z: " << energy_dir.z()
+            << "x: " << g.x()
+            << " y: " << g.y()
+            << " z: " << g.z()
             << std::endl;
     }
 
