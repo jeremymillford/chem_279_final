@@ -26,44 +26,35 @@ const std::map<int, std::map<std::string, double>> PARAMETER_INFO {
         {"Valence Orbitals", 1},
         {"Valence Atoms", 1},
         {"1/2(Is + As)", 7.176},
-        {"-Beta", 9.0},
-        {"I1", -13.598}  
+        {"-Beta", 9.0},  
     }},
     {6, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 4},
         {"1/2(Is + As)", 14.051},
         {"1/2(Ip + Ap)", 5.572},
-        {"-Beta", 21},
-        {"I1", -11.260},
-        {"I2", -24.383}  
+        {"-Beta", 21},  
     }},
     {7, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 5},
         {"1/2(Is + As)", 19.316},
         {"1/2(Ip + Ap)", 7.275},
-        {"-Beta", 25}, 
-        {"I1", -14.534},
-        {"I2", -29.601} 
+        {"-Beta", 25},  
     }},
     {8, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 6},
         {"1/2(Is + As)", 25.390},
         {"1/2(Ip + Ap)", 9.111},
-        {"-Beta", 31}, 
-        {"I1", -13.618},
-        {"I2", -35.117} 
+        {"-Beta", 31},  
     }},
     {9, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 7},
         {"1/2(Is + As)", 32.272},
         {"1/2(Ip + Ap)", 11.080},
-        {"-Beta", 39},
-        {"I1", -17.423},
-        {"I2", -34.971}  
+        {"-Beta", 39},  
     }},
 };
 
@@ -228,10 +219,6 @@ double get_half_IuAu(const ContractedGaussian &cg){
     throw std::runtime_error("The shell for this contracted gaussian isn't s or p");   
 }
 
-double get_IE(const ContractedGaussian &cg) {
-    return PARAMETER_INFO.at(cg.z_num).at("I1"); 
-}
-
 // Helper to get B_? in atomic units 
 double get_B(const Atom &atom){
     return (-1 * PARAMETER_INFO.at(atom.z_num).at("-Beta")); // / CONVERSION_FACTOR);
@@ -291,20 +278,20 @@ double get_gamma_elem(const Atom &A, const Atom &B){
 
     double sum = 0; 
     for (int k = 0; k < NUM_CONTRACTED; k++){
-        for (int k_prime = 0; k_prime < NUM_CONTRACTED; k_prime++){
-            for (int l = 0; l < NUM_CONTRACTED; l++){
-                for (int l_prime = 0; l_prime < NUM_CONTRACTED; l_prime++){
-                    double temp = 1;
-                    temp *= A_s.cont_coef.at(k)       * A_s.norm_coef.at(k); 
-                    temp *= A_s.cont_coef.at(k_prime) * A_s.norm_coef.at(k_prime); 
-                    temp *= B_s.cont_coef.at(l)       * B_s.norm_coef.at(l); 
-                    temp *= B_s.cont_coef.at(l_prime) * B_s.norm_coef.at(l_prime); 
-                    temp *= get_integral_over_4_gaussians(A_s.gaussians.at(k), A_s.gaussians.at(k_prime), B_s.gaussians.at(l), B_s.gaussians.at(l_prime));
-                    temp *= CONVERSION_FACTOR;
-                    sum += temp; 
-                }
-            }
-        }
+    for (int k_prime = 0; k_prime < NUM_CONTRACTED; k_prime++){
+    for (int l = 0; l < NUM_CONTRACTED; l++){
+    for (int l_prime = 0; l_prime < NUM_CONTRACTED; l_prime++){
+        double temp = 1;
+        temp *= A_s.cont_coef.at(k)       * A_s.norm_coef.at(k); 
+        temp *= A_s.cont_coef.at(k_prime) * A_s.norm_coef.at(k_prime); 
+        temp *= B_s.cont_coef.at(l)       * B_s.norm_coef.at(l); 
+        temp *= B_s.cont_coef.at(l_prime) * B_s.norm_coef.at(l_prime); 
+        temp *= get_integral_over_4_gaussians(A_s.gaussians.at(k), A_s.gaussians.at(k_prime), B_s.gaussians.at(l), B_s.gaussians.at(l_prime));
+        temp *= CONVERSION_FACTOR;
+        sum += temp; 
+    }
+    }
+    }
     }
     return sum; 
 }
@@ -329,28 +316,28 @@ Eigen::Vector3d get_gamma_dir_elem(const Atom &A, const Atom &B, const std::vect
     Eigen::Vector3d dir = Eigen::Vector3d::Zero();
 
     for (int k = 0; k < NUM_CONTRACTED; k++){
-        for (int k_prime = 0; k_prime < NUM_CONTRACTED; k_prime++){
-            for (int l = 0;  l < NUM_CONTRACTED; l++){
-                for (int l_prime = 0; l_prime < NUM_CONTRACTED; l_prime++){
-                    double coeff = 1; 
-                    coeff *= A_s.norm_coef.at(k); 
-                    coeff *= A_s.cont_coef.at(k); 
-                    coeff *= A_s.norm_coef.at(k_prime); 
-                    coeff *= A_s.cont_coef.at(k_prime);
-                    coeff *= B_s.norm_coef.at(l); 
-                    coeff *= B_s.cont_coef.at(l); 
-                    coeff *= B_s.norm_coef.at(l_prime); 
-                    coeff *= B_s.cont_coef.at(l_prime);
-                    coeff *= CONVERSION_FACTOR; 
-                    dir += coeff * get_integral_over_4_gaussians_dir(
-                        A_s.gaussians.at(k), 
-                        A_s.gaussians.at(k_prime), 
-                        B_s.gaussians.at(l), 
-                        B_s.gaussians.at(l_prime)
-                        ); 
-                }
-            }
-        }
+    for (int k_prime = 0; k_prime < NUM_CONTRACTED; k_prime++){
+    for (int l = 0;  l < NUM_CONTRACTED; l++){
+    for (int l_prime = 0; l_prime < NUM_CONTRACTED; l_prime++){
+        double coeff = 1; 
+        coeff *= A_s.norm_coef.at(k); 
+        coeff *= A_s.cont_coef.at(k); 
+        coeff *= A_s.norm_coef.at(k_prime); 
+        coeff *= A_s.cont_coef.at(k_prime);
+        coeff *= B_s.norm_coef.at(l); 
+        coeff *= B_s.cont_coef.at(l); 
+        coeff *= B_s.norm_coef.at(l_prime); 
+        coeff *= B_s.cont_coef.at(l_prime);
+        coeff *= CONVERSION_FACTOR; 
+        dir += coeff * get_integral_over_4_gaussians_dir(
+            A_s.gaussians.at(k), 
+            A_s.gaussians.at(k_prime), 
+            B_s.gaussians.at(l), 
+            B_s.gaussians.at(l_prime)
+            ); 
+    }
+    }
+    }
     }
     return dir; 
 }
@@ -366,19 +353,19 @@ Eigen::VectorX<Eigen::MatrixX<Eigen::Vector3d>> get_vector_of_gamma_dir(
     Eigen::VectorX<Eigen::MatrixX<Eigen::Vector3d>> vector_of_gamma_dir (N);
     for (int C = 0; C < N; C++){
         Eigen::MatrixX<Eigen::Vector3d> dir (n,n); 
-        for (int A = 0; A < N; A++){
-            for (int B = 0; B < N; B++){
-                if (((A == C) && (C != B)) || ((B == C) && (C != A))){
-                    dir(A,B) = get_gamma_dir_elem(atoms.at(A), atoms.at(B), vcg);
-                }
-            }
-        }
+    for (int A = 0; A < N; A++){
+    for (int B = 0; B < N; B++){
+    if (((A == C) && (C != B)) || ((B == C) && (C != A))){
+        dir(A,B) = get_gamma_dir_elem(atoms.at(A), atoms.at(B), vcg);
+    }
+    }
+    }
         vector_of_gamma_dir(C) = dir; 
     }
     return vector_of_gamma_dir; 
 }
 
-// This returns an Eigen::VectorXd of Atomic Density 
+// This returns an Eigen::VectorXd ov Atomic Density 
 Eigen::VectorXd get_p_total_atomwise_diag_vector(const std::vector<Atom> &atoms,  const Eigen::MatrixXd &p_total) {
     Eigen::VectorXd p_total_diag_atomwise_sum = Eigen::VectorXd::Zero(atoms.size());
     int p_total_index = 0; 
@@ -425,9 +412,8 @@ double get_on_diagonal_fock_element(
     result += get_third_term_of_1_4(A, atoms, p_total_atomwise_diag_vector, gamma);
     return result; 
 }
-//* changes made here */
+
 // returns the on diagonal fock matrix element for the spin type
-// Offdiagonal Calculation fro INDO 
 double get_off_diagonal_fock_element(
     const int A, 
     const int B, 
@@ -439,16 +425,7 @@ double get_off_diagonal_fock_element(
     const Eigen::MatrixXd &gamma
     )
 {
-    int num_basis = get_vector_of_contracted_gaussians(atoms).size();
-    double offdiag_elem = 0.0;
-    for (int k = 0; k < num_basis; k++) { 
-        for (int l = 0; l < num_basis; l++) {
-            if (k == u && l == v) {
-                offdiag_elem += p_spin(k, l) * gamma(A, B);
-            }
-        }
-    }
-    return ((0.5) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))) - offdiag_elem;  
+    return ((0.5) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))) - (p_spin(u,v) * gamma(A,B));  
 }
 
 // get the fock matrix 
@@ -505,7 +482,6 @@ double get_third_term_of_2_6(
 }
 
 
-
 // Helper function which returns an on diagonal element of the hamiltonian 
 double get_on_diagonal_hamiltonian_element(
     const int A, 
@@ -530,11 +506,7 @@ double get_off_diagonal_hamiltonian_element(
     const std::vector<Atom> &atoms,
     const Eigen::MatrixXd &s)
 {
-    std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms); 
-    double I_mu = get_IE(vcg[u]);
-    double I_nu = get_IE(vcg[v]);
-
-    return ((I_mu + I_nu / CONVERSION_FACTOR) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))); 
+    return ((0.5) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))); 
 }
 
 
@@ -570,6 +542,69 @@ Eigen::MatrixXd get_hamiltonian(const std::vector<Atom> &atoms){
     }
     
     return h; 
+}
+
+//New method to run CNDO with overlap
+std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
+run_CNDO_S(const std::vector<Atom>& atoms, int p, int q) {
+    using namespace std;
+    using namespace Eigen;
+
+    // Step 1: Build basis and overlap
+    auto basis = get_vector_of_contracted_gaussians(atoms);
+    MatrixXd S = make_overlap_matrix(basis);
+    int dim = S.rows();
+
+    // Step 2: Initial guess: core Hamiltonian diagonal
+    MatrixXd F = MatrixXd::Zero(dim, dim);
+    for (int i = 0; i < dim; i++) {
+        F(i, i) = get_half_IuAu(basis[i]);
+    }
+
+    MatrixXd P = MatrixXd::Zero(dim, dim);
+    MatrixXd C_old = MatrixXd::Zero(dim, dim);
+
+    const double SCF_TOL = 1e-8;
+    const int MAX_ITER = 100;
+
+    for (int iter = 0; iter < MAX_ITER; iter++) {
+        // Step 3: Solve generalized eigenvalue problem FC = SCε
+        GeneralizedSelfAdjointEigenSolver<MatrixXd> ges(F, S);
+        if (ges.info() != Success) {
+            throw std::runtime_error("Generalized eigensolver failed");
+        }
+
+        MatrixXd C = ges.eigenvectors();
+        VectorXd eps = ges.eigenvalues();
+
+        // Step 4: Build new density matrix
+        P = build_density_matrix(p + q, C);  // number of occupied orbitals
+
+        // Step 5: Build new Fock matrix
+        MatrixXd F_new = MatrixXd::Zero(dim, dim);
+        for (int u = 0; u < dim; u++) {
+            for (int v = 0; v < dim; v++) {
+                double H_uv = (u == v) ? get_half_IuAu(basis[u]) : get_B(atoms[u / 4]); // hacky atom guess
+                double G_uv = 0.0;
+                for (int A = 0; A < atoms.size(); A++) {
+                    for (int B = 0; B < atoms.size(); B++) {
+                        G_uv += P(u, v) * get_gamma_elem(atoms[A], atoms[B]);
+                    }
+                }
+                F_new(u, v) = H_uv + G_uv;
+            }
+        }
+
+        // Step 6: Check convergence
+        if (close_enough(F, F_new, SCF_TOL)) {
+            std::cout << "SCF converged in " << iter + 1 << " iterations." << std::endl;
+            return {F_new, P};
+        }
+
+        F = F_new;
+    }
+
+    throw std::runtime_error("SCF did not converge after max iterations.");
 }
 
 // runs CNDO2 till convergence and returns the density matricies 
@@ -680,10 +715,10 @@ Eigen::Vector3d get_analytical_s_dir_elem_per_gaussian(const Gaussian &g1, const
 Eigen::Vector3d get_analytical_s_dir_elem(const ContractedGaussian &cg1, const ContractedGaussian &cg2){
     Eigen::Vector3d dir = Eigen::Vector3d::Zero(); 
     for (int k = 0; k < NUM_CONTRACTED; k++){
-        for (int l = 0; l < NUM_CONTRACTED; l++){
-            double coeff = cg1.cont_coef.at(k) * cg1.norm_coef.at(k) * cg2.cont_coef.at(l) * cg2.norm_coef.at(l); 
-            dir += coeff * get_analytical_s_dir_elem_per_gaussian(cg1.gaussians.at(k), cg2.gaussians.at(l)); 
-        }
+    for (int l = 0; l < NUM_CONTRACTED; l++){
+        double coeff = cg1.cont_coef.at(k) * cg1.norm_coef.at(k) * cg2.cont_coef.at(l) * cg2.norm_coef.at(l); 
+        dir += coeff * get_analytical_s_dir_elem_per_gaussian(cg1.gaussians.at(k), cg2.gaussians.at(l)); 
+    }
     }
     return dir; 
 }
@@ -820,9 +855,9 @@ double get_y_elem_last_term(
     int num_A_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(A).z_num).at("Valence Orbitals")); 
     int num_B_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(B).z_num).at("Valence Orbitals")); 
     for (int i = u; i < u + num_A_orbitals; i++){
-        for (int j = v; j < v + num_B_orbitals; j++){
-            result += (p_alpha(i,j) * p_alpha(i,j)) + (p_beta(i,j) * p_beta(i,j));
-        }
+    for (int j = v; j < v + num_B_orbitals; j++){
+        result += (p_alpha(i,j) * p_alpha(i,j)) + (p_beta(i,j) * p_beta(i,j));
+    }
     }
     return result; 
 }
