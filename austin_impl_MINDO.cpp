@@ -530,8 +530,10 @@ double get_off_diagonal_hamiltonian_element(
     const Eigen::MatrixXd &s)
 {
     std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms); 
+    double I_mu = get_IE(vcg[u]);
+    double I_nu = get_IE(vcg[v]);
 
-    return ((get_IE(vcg[u]) + get_IE(vcg[v]) / CONVERSION_FACTOR) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))); 
+    return ((I_mu + I_nu / CONVERSION_FACTOR) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))); 
 }
 
 
