@@ -3,7 +3,9 @@
 #include <vector>
 #include <map> 
 #include <Eigen/Dense>
-#include <iostream> 
+#include <Eigen/Eigenvalues>
+#include <iostream>
+#include <stdexcept>
 #include <fstream> 
 #include <sstream> 
 #include <utility> 
@@ -18,6 +20,11 @@
 
 constexpr int NUM_CONTRACTED = 3; 
 constexpr double CONVERSION_FACTOR = 27.211; // eV / atomic unit 
+// prototypes for the new overlap routines
+Eigen::MatrixXd make_overlap_matrix(const std::vector<ContractedGaussian>&);
+Eigen::MatrixXd build_density_matrix_overlap(
+    int, const Eigen::MatrixXd&, const Eigen::MatrixXd&);
+bool close_enough(const Eigen::MatrixXd&, const Eigen::MatrixXd&, double);
 
 // Semi-Empirical parameters that define the CNDO/2 model (units eV)
 // NOTE SOMETHING VERY SKETCHY. I AM STORING INTS IN THIS DOUBLE CONTAINER. I SHOULD BE SCARED OF THIS. 
@@ -155,15 +162,7 @@ std::vector<ContractedGaussian> get_vector_of_contracted_gaussians(const std::ve
     return cgv; 
 }
 
-Eigen::MatrixXd make_overlap_matrix(std::vector<ContractedGaussian> vcg){
-    Eigen::MatrixXd M (vcg.size(),vcg.size()); 
-    for (int i = 0; i < M.rows(); i++){
-        for (int j = 0; j < M.cols(); j++){
-            M(i,j) = contracted_gaussian_overlap(vcg.at(i),vcg.at(j)); 
-        }
-    }
-    return M; 
-}
+
 
 // Helper to get Z_?  
 double get_Z(const Atom &atom){
@@ -204,9 +203,7 @@ Eigen::MatrixXd build_density_matrix(const int count, const Eigen::MatrixXd &c){
     return p; 
 }
 
-bool close_enough(const Eigen::MatrixXd &M1, const Eigen::MatrixXd &M2, const double tol){
-    return ((M1 - M2).cwiseAbs().maxCoeff() <= tol); 
-}
+
 
 // Helper lookup function to get the appropriate data from the header in atomic units! 
 double get_half_IuAu(const ContractedGaussian &cg){
@@ -340,6 +337,47 @@ Eigen::Vector3d get_gamma_dir_elem(const Atom &A, const Atom &B, const std::vect
     }
     }
     return dir; 
+}
+// -----------------------------------------------------------------------------
+// 1) Build the overlap matrix S_uv = ⟨χ_u|χ_v⟩ via contracted_gaussian_overlap
+// -----------------------------------------------------------------------------
+Eigen::MatrixXd make_overlap_matrix(
+    const std::vector<ContractedGaussian>& basis)
+{
+    const int dim = int(basis.size());
+    Eigen::MatrixXd S(dim, dim);
+    for (int i = 0; i < dim; ++i) {
+        for (int j = 0; j < dim; ++j) {
+            S(i, j) = contracted_gaussian_overlap(basis[i], basis[j]);
+        }
+    }
+    return S;
+}
+
+// -----------------------------------------------------------------------------
+// 2) Build the density matrix with overlap:
+//      P = 2 · C_occ · (C_occᵀ · S)
+//    where C_occ is the first nocc columns of C.
+// -----------------------------------------------------------------------------
+Eigen::MatrixXd build_density_matrix_overlap(
+    int nocc,
+    const Eigen::MatrixXd& C,
+    const Eigen::MatrixXd& S)
+{
+    Eigen::MatrixXd Cocc = C.leftCols(nocc);          // dim × nocc
+    Eigen::MatrixXd M    = Cocc.transpose() * S;      // nocc × dim
+    return 2.0 * (Cocc * M);                          // dim × dim
+}
+
+// -----------------------------------------------------------------------------
+// 3) Simple SCF convergence check on max|F_new - F_old|
+// -----------------------------------------------------------------------------
+bool close_enough(
+    const Eigen::MatrixXd& A,
+    const Eigen::MatrixXd& B,
+    double tol)
+{
+    return (A - B).cwiseAbs().maxCoeff() < tol;
 }
 
 // Vector of Matrices of Derivatives
@@ -544,68 +582,73 @@ Eigen::MatrixXd get_hamiltonian(const std::vector<Atom> &atoms){
     return h; 
 }
 
-//New method to run CNDO with overlap
+// -----------------------------------------------------------------------------
+// CNDO/S SCF driver: builds S, solves F C = S C ε, includes damping & extra SCF iterations
+// -----------------------------------------------------------------------------
 std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
-run_CNDO_S(const std::vector<Atom>& atoms, int p, int q) {
-    using namespace std;
+run_CNDO_S(const std::vector<Atom>& atoms,
+           int p, int q)
+{
     using namespace Eigen;
 
-    // Step 1: Build basis and overlap
+    // 1) Build basis & overlap
     auto basis = get_vector_of_contracted_gaussians(atoms);
     MatrixXd S = make_overlap_matrix(basis);
-    int dim = S.rows();
+    const int dim = S.rows();
 
-    // Step 2: Initial guess: core Hamiltonian diagonal
+    // 2) Initial Fock: only diagonal one‐electron
     MatrixXd F = MatrixXd::Zero(dim, dim);
-    for (int i = 0; i < dim; i++) {
-        F(i, i) = get_half_IuAu(basis[i]);
-    }
+    for (int i = 0; i < dim; ++i)
+        F(i,i) = get_half_IuAu(basis[i]);
 
-    MatrixXd P = MatrixXd::Zero(dim, dim);
-    MatrixXd C_old = MatrixXd::Zero(dim, dim);
+    MatrixXd P_old = MatrixXd::Zero(dim, dim);
+    const double DAMP     = 0.3;
+    const double SCF_TOL  = 1e-8;
+    const int    MAX_ITER = 500;
 
-    const double SCF_TOL = 1e-8;
-    const int MAX_ITER = 100;
-
-    for (int iter = 0; iter < MAX_ITER; iter++) {
-        // Step 3: Solve generalized eigenvalue problem FC = SCε
+    // 3) SCF loop
+    for (int iter = 0; iter < MAX_ITER; ++iter) {
+        // 3a) generalized eigen‐solve F C = S C ε
         GeneralizedSelfAdjointEigenSolver<MatrixXd> ges(F, S);
-        if (ges.info() != Success) {
-            throw std::runtime_error("Generalized eigensolver failed");
-        }
+        if (ges.info() != Success)
+            throw std::runtime_error("CNDO/S: eigensolver failed");
 
         MatrixXd C = ges.eigenvectors();
-        VectorXd eps = ges.eigenvalues();
 
-        // Step 4: Build new density matrix
-        P = build_density_matrix(p + q, C);  // number of occupied orbitals
+        // 3b) build new density
+        MatrixXd P_new = build_density_matrix_overlap(p+q, C, S);
 
-        // Step 5: Build new Fock matrix
+        // 3c) damped mixing
+        MatrixXd P = DAMP*P_new + (1.0 - DAMP)*P_old;
+        P_old = P;
+
+        // 3d) rebuild Fock
         MatrixXd F_new = MatrixXd::Zero(dim, dim);
-        for (int u = 0; u < dim; u++) {
-            for (int v = 0; v < dim; v++) {
-                double H_uv = (u == v) ? get_half_IuAu(basis[u]) : get_B(atoms[u / 4]); // hacky atom guess
-                double G_uv = 0.0;
-                for (int A = 0; A < atoms.size(); A++) {
-                    for (int B = 0; B < atoms.size(); B++) {
-                        G_uv += P(u, v) * get_gamma_elem(atoms[A], atoms[B]);
-                    }
-                }
-                F_new(u, v) = H_uv + G_uv;
+        for (int u = 0; u < dim; ++u) {
+            for (int v = 0; v < dim; ++v) {
+                double Huv = (u == v ? get_half_IuAu(basis[u]) : 0.0);
+                double Guv = 0.0;
+                for (int A = 0; A < (int)atoms.size(); ++A)
+                    for (int B = 0; B < (int)atoms.size(); ++B)
+                        Guv += P(u,v) * get_gamma_elem(atoms[A], atoms[B]);
+                F_new(u,v) = Huv + Guv;
             }
         }
 
-        // Step 6: Check convergence
+        // 3e) check convergence
         if (close_enough(F, F_new, SCF_TOL)) {
-            std::cout << "SCF converged in " << iter + 1 << " iterations." << std::endl;
+            std::cout << "CNDO/S SCF converged in " << (iter+1)
+                      << " iterations.\n";
             return {F_new, P};
         }
 
-        F = F_new;
+        F = std::move(F_new);
     }
 
-    throw std::runtime_error("SCF did not converge after max iterations.");
+    throw std::runtime_error(
+        "CNDO/S: SCF did not converge after max iterations");
 }
+
 
 // runs CNDO2 till convergence and returns the density matricies 
 std::pair<Eigen::MatrixXd,Eigen::MatrixXd> run_CNDO2(
