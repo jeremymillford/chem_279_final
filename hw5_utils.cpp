@@ -565,10 +565,11 @@ run_CNDO_S(const std::vector<Atom>& atoms, int p, int q, const double tol = 1e-6
     // SCF convergence parameters
     bool converged = false;
     int iter = 0;
-    int max_iter = 100;
+    int max_iter = 1000;
     
     // Damping factor to help convergence
-    double damp_factor = 0.3;
+    double damp_factor = std::max(0.1, 1.0 - 0.75 * std::exp(-0.05 * iter));
+
     
     std::cout << "Starting SCF iterations with overlap..." << std::endl;
     
@@ -678,7 +679,7 @@ run_CNDO_S(const std::vector<Atom>& atoms, int p, int q, const double tol = 1e-6
     return std::make_pair(p_alpha, p_beta);
 }
 
-// Energy calculation for CNDO/S with overlap
+// Improved energy calculation for CNDO/S with better numerical stability
 double E_CNDO_S(const Eigen::MatrixXd &p_alpha, const Eigen::MatrixXd &p_beta, 
                const std::vector<Atom> &atoms) {
     // Get basis and overlap matrices
@@ -697,12 +698,63 @@ double E_CNDO_S(const Eigen::MatrixXd &p_alpha, const Eigen::MatrixXd &p_beta,
     double energy_elec = 0.0;
     int n = p_alpha.rows();
     
+    // Print matrices for debugging
+    bool debug = false;  // Set to true for debugging
+    if (debug) {
+        std::cout << "Overlap matrix S:" << std::endl << S << std::endl;
+        std::cout << "Hamiltonian matrix h:" << std::endl << h << std::endl;
+        std::cout << "Alpha density matrix:" << std::endl << p_alpha << std::endl;
+        std::cout << "Beta density matrix:" << std::endl << p_beta << std::endl;
+        std::cout << "Alpha Fock matrix:" << std::endl << f_alpha << std::endl;
+        std::cout << "Beta Fock matrix:" << std::endl << f_beta << std::endl;
+    }
+    
+    // Atomic orbital energies and occupations for debugging
+    if (debug) {
+        Eigen::MatrixXd S_half = S;  // We would need the square root of S here
+        Eigen::MatrixXd F_transformed = S_half.transpose() * f_alpha * S_half;
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(F_transformed);
+        std::cout << "Orbital energies:" << std::endl << es.eigenvalues() << std::endl;
+    }
+    
+    // Calculate electronic energy term by term to avoid numerical issues
+    double e_one_electron = 0.0;  // One-electron terms
+    double e_two_electron = 0.0;  // Two-electron terms
+    
+    // One-electron contributions
     for (int u = 0; u < n; u++) {
         for (int v = 0; v < n; v++) {
-            // Include overlap in energy calculation
-            energy_elec += 0.5 * p_alpha(u,v) * (h(u,v) + f_alpha(u,v)) * S(u,v);
-            energy_elec += 0.5 * p_beta(u,v) * (h(u,v) + f_beta(u,v)) * S(u,v);
+            double p_tot_uv = p_alpha(u,v) + p_beta(u,v);
+            double h_uv_S_uv = h(u,v) * S(u,v);
+            
+            e_one_electron += p_tot_uv * h_uv_S_uv;
         }
+    }
+    
+    // Two-electron contributions using compact formula
+    for (int u = 0; u < n; u++) {
+        for (int v = 0; v < n; v++) {
+            double p_alpha_uv = p_alpha(u,v);
+            double p_beta_uv = p_beta(u,v);
+            double f_alpha_uv = f_alpha(u,v);
+            double f_beta_uv = f_beta(u,v);
+            double h_uv = h(u,v);
+            double S_uv = S(u,v);
+            
+            // The two-electron part is the difference between Fock and core Hamiltonian
+            double two_e_alpha = (f_alpha_uv - h_uv) * S_uv;
+            double two_e_beta = (f_beta_uv - h_uv) * S_uv;
+            
+            e_two_electron += 0.5 * (p_alpha_uv * two_e_alpha + p_beta_uv * two_e_beta);
+        }
+    }
+    
+    energy_elec = e_one_electron + e_two_electron;
+    
+    if (debug) {
+        std::cout << "One-electron energy: " << e_one_electron << " eV" << std::endl;
+        std::cout << "Two-electron energy: " << e_two_electron << " eV" << std::endl;
+        std::cout << "Total electronic energy: " << energy_elec << " eV" << std::endl;
     }
     
     // Calculate nuclear repulsion energy
@@ -714,6 +766,10 @@ double E_CNDO_S(const Eigen::MatrixXd &p_alpha, const Eigen::MatrixXd &p_beta,
         }
     }
     nuclear_energy *= CONVERSION_FACTOR;
+    
+    if (debug) {
+        std::cout << "Nuclear repulsion energy: " << nuclear_energy << " eV" << std::endl;
+    }
     
     return energy_elec + nuclear_energy;
 }
