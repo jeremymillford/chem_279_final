@@ -565,7 +565,7 @@ run_CNDO_S(const std::vector<Atom>& atoms, int p, int q, const double tol = 1e-6
     // SCF convergence parameters
     bool converged = false;
     int iter = 0;
-    int max_iter = 1000;
+    int max_iter = 100;
     
     // Damping factor to help convergence
     double damp_factor = std::max(0.1, 1.0 - 0.75 * std::exp(-0.05 * iter));
