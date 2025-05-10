@@ -1,3 +1,0 @@
-/home/jeremy_msi/chem_279/chem_279_final/build/CMakeFiles/cndo2_overlap.dir
-/home/jeremy_msi/chem_279/chem_279_final/build/CMakeFiles/edit_cache.dir
-/home/jeremy_msi/chem_279/chem_279_final/build/CMakeFiles/rebuild_cache.dir
