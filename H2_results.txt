@@ -1,0 +1,45 @@
+Molecule: H2
+Filepath: hydrocarbon_structures/H2.txt
+Number of atoms: 2
+Number of valence electrons: 2
+Alpha electrons: 1, Beta electrons: 1
+
+========================================
+[CNDO/2] Results with orthonormal basis (S = I)
+Calculation time: 0.004155 seconds
+Nuclear Repulsion Energy: 19.458667 eV
+Electronic Energy: -60.033774 eV
+Total Energy: -40.575107 eV
+Energy per atom: -20.287554 eV/atom
+Energy per electron: -20.287554 eV/electron
+
+[CNDO/S] Results with overlap matrix (S ≠ I)
+Calculation time: 0.046006 seconds
+Nuclear Repulsion Energy: 19.458667 eV
+Electronic Energy: -54.593673 eV
+Total Energy: -35.135006 eV
+Energy per atom: -17.567503 eV/atom
+Energy per electron: -17.567503 eV/electron
+
+[COMPARISON] CNDO/S vs CNDO/2 Differences
+Nuclear Repulsion Energy Difference: 0.000000 eV
+Electronic Energy Difference: 5.440101 eV
+Total Energy Difference: 5.440101 eV
+Relative Energy Difference: 13.407484%
+
+[GRADIENTS]
+CNDO/2 Gradients:
+Atom 0 (1): x: -0.441958 y: 0.000000 z: 0.000000 magnitude: 0.441958
+Atom 1 (1): x: 0.441958 y: 0.000000 z: 0.000000 magnitude: 0.441958
+Total gradient norm: 0.625023
+
+CNDO/S Gradients:
+Atom 0 (1): x: 6.087303 y: 0.000000 z: 0.000000 magnitude: 6.087303
+Atom 1 (1): x: -6.087303 y: 0.000000 z: 0.000000 magnitude: 6.087303
+Total gradient norm: 8.608747
+
+[ELECTRON DENSITY]
+Atomic Charges:
+Atom	CNDO/2	CNDO/S	Difference
+0 (1)	0.000000	0.514488	0.514488
+1 (1)	-0.000000	-2.145381	-2.145381

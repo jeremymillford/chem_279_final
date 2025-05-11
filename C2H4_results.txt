@@ -1,0 +1,57 @@
+Molecule: C2H4
+Filepath: hydrocarbon_structures/C2H4.txt
+Number of atoms: 6
+Number of valence electrons: 12
+Alpha electrons: 6, Beta electrons: 6
+
+========================================
+[CNDO/2] Results with orthonormal basis (S = I)
+Calculation time: 0.963891 seconds
+Nuclear Repulsion Energy: 1096.605357 eV
+Electronic Energy: -1343.807191 eV
+Total Energy: -247.201835 eV
+Energy per atom: -41.200306 eV/atom
+Energy per electron: -20.600153 eV/electron
+
+[CNDO/S] Results with overlap matrix (S ≠ I)
+Calculation time: 0.416111 seconds
+Nuclear Repulsion Energy: 1096.605357 eV
+Electronic Energy: -2927.178917 eV
+Total Energy: -1830.573560 eV
+Energy per atom: -305.095593 eV/atom
+Energy per electron: -152.547797 eV/electron
+
+[COMPARISON] CNDO/S vs CNDO/2 Differences
+Nuclear Repulsion Energy Difference: 0.000000 eV
+Electronic Energy Difference: -1583.371726 eV
+Total Energy Difference: -1583.371726 eV
+Relative Energy Difference: -640.517789%
+
+[GRADIENTS]
+CNDO/2 Gradients:
+Atom 0 (6): x: 163.755301 y: -36.437317 z: -0.000000 magnitude: 167.760177
+Atom 1 (6): x: -225.880513 y: 0.000000 z: 0.000000 magnitude: 225.880513
+Atom 2 (1): x: 69.030437 y: -138.585181 z: -0.000000 magnitude: 154.825882
+Atom 3 (1): x: 69.030437 y: 138.585181 z: 0.000000 magnitude: 154.825882
+Atom 4 (1): x: -6.905226 y: -102.147864 z: -0.000000 magnitude: 102.380995
+Atom 5 (1): x: -69.030437 y: 138.585181 z: -0.000000 magnitude: 154.825882
+Total gradient norm: 401.945907
+
+CNDO/S Gradients:
+Atom 0 (6): x: 157.533042 y: -37.661642 z: -0.009379 magnitude: 161.972401
+Atom 1 (6): x: -238.939659 y: 2.066781 z: -0.018054 magnitude: 238.948598
+Atom 2 (1): x: 70.986636 y: -152.603044 z: 0.008134 magnitude: 168.305649
+Atom 3 (1): x: 76.201742 y: 152.088631 z: -0.001358 magnitude: 170.110720
+Atom 4 (1): x: 2.045215 y: -107.328596 z: 0.006808 magnitude: 107.348081
+Atom 5 (1): x: -74.318236 y: 144.672679 z: -0.001704 magnitude: 162.644964
+Total gradient norm: 422.578910
+
+[ELECTRON DENSITY]
+Atomic Charges:
+Atom	CNDO/2	CNDO/S	Difference
+0 (6)	-0.102726	3.711884	3.814611
+1 (6)	-0.102726	-0.721497	-0.618771
+2 (1)	0.051363	-2.009678	-2.061041
+3 (1)	0.051363	-3.032440	-3.083803
+4 (1)	0.051363	-3.133010	-3.184373
+5 (1)	0.051363	-3.960230	-4.011593

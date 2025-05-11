@@ -1,0 +1,75 @@
+Molecule: C6H6
+Filepath: hydrocarbon_structures/C6H6.txt
+Number of atoms: 12
+Number of valence electrons: 30
+Alpha electrons: 15, Beta electrons: 15
+
+========================================
+[CNDO/2] Results with orthonormal basis (S = I)
+Calculation time: 6.327832 seconds
+Nuclear Repulsion Energy: 5283.403724 eV
+Electronic Energy: -6001.237148 eV
+Total Energy: -717.833424 eV
+Energy per atom: -59.819452 eV/atom
+Energy per electron: -23.927781 eV/electron
+
+[CNDO/S] Results with overlap matrix (S ≠ I)
+Calculation time: 3.108054 seconds
+Nuclear Repulsion Energy: 5283.403724 eV
+Electronic Energy: -14284.605395 eV
+Total Energy: -9001.201671 eV
+Energy per atom: -750.100139 eV/atom
+Energy per electron: -300.040056 eV/electron
+
+[COMPARISON] CNDO/S vs CNDO/2 Differences
+Nuclear Repulsion Energy Difference: 0.000000 eV
+Electronic Energy Difference: -8283.368247 eV
+Total Energy Difference: -8283.368247 eV
+Relative Energy Difference: -1153.940172%
+
+[GRADIENTS]
+CNDO/2 Gradients:
+Atom 0 (6): x: -243.474548 y: 10.980001 z: 0.000000 magnitude: 243.722006
+Atom 1 (6): x: -163.602396 y: -283.385829 z: -0.000000 magnitude: 327.220525
+Atom 2 (6): x: 163.602396 y: -283.385829 z: -0.000000 magnitude: 327.220525
+Atom 3 (6): x: 327.224067 y: -0.000000 z: 0.000000 magnitude: 327.224067
+Atom 4 (6): x: 129.750581 y: 231.615491 z: 0.000000 magnitude: 265.482483
+Atom 5 (6): x: -163.602396 y: 283.385829 z: -0.000000 magnitude: 327.220525
+Atom 6 (1): x: -161.792427 y: 0.000000 z: 0.000000 magnitude: 161.792427
+Atom 7 (1): x: -80.891652 y: -140.112162 z: 0.000000 magnitude: 161.786518
+Atom 8 (1): x: 48.310900 y: -69.328186 z: -0.000000 magnitude: 84.500535
+Atom 9 (1): x: 161.792427 y: 0.000000 z: -0.000000 magnitude: 161.792427
+Atom 10 (1): x: 80.891652 y: 140.112162 z: 0.000000 magnitude: 161.786518
+Atom 11 (1): x: -80.891652 y: 140.112162 z: 0.000000 magnitude: 161.786518
+Total gradient norm: 834.383199
+
+CNDO/S Gradients:
+Atom 0 (6): x: -236.172807 y: 13.686026 z: -0.005390 magnitude: 236.569022
+Atom 1 (6): x: -181.831246 y: -307.712071 z: -0.223013 magnitude: 357.420440
+Atom 2 (6): x: 194.520126 y: -302.653317 z: -0.775889 magnitude: 359.774529
+Atom 3 (6): x: 335.700092 y: 21.254065 z: 1.022507 magnitude: 336.373799
+Atom 4 (6): x: 135.014349 y: 224.347771 z: -0.117085 magnitude: 261.841193
+Atom 5 (6): x: -168.677275 y: 312.508264 z: 0.003441 magnitude: 355.124539
+Atom 6 (1): x: -176.018166 y: -1.281076 z: 0.081097 magnitude: 176.022847
+Atom 7 (1): x: -88.149578 y: -144.914709 z: 0.046972 magnitude: 169.619053
+Atom 8 (1): x: 38.091041 y: -80.858240 z: -0.228728 magnitude: 89.381400
+Atom 9 (1): x: 175.186839 y: 2.385972 z: -0.345808 magnitude: 175.203427
+Atom 10 (1): x: 81.641866 y: 149.384868 z: 0.323938 magnitude: 170.239061
+Atom 11 (1): x: -85.167166 y: 144.837367 z: 0.231137 magnitude: 168.021911
+Total gradient norm: 881.263983
+
+[ELECTRON DENSITY]
+Atomic Charges:
+Atom	CNDO/2	CNDO/S	Difference
+0 (6)	0.212400	3.422705	3.210305
+1 (6)	0.212404	-1.054734	-1.267138
+2 (6)	0.212404	-2.079488	-2.291892
+3 (6)	0.212400	-1.246606	-1.459006
+4 (6)	0.212404	-1.077965	-1.290369
+5 (6)	0.212404	-5.360810	-5.573214
+6 (1)	-0.212393	-1.659456	-1.447063
+7 (1)	-0.212407	-1.933501	-1.721094
+8 (1)	-0.212407	-3.162779	-2.950372
+9 (1)	-0.212393	-3.974517	-3.762123
+10 (1)	-0.212407	-4.215530	-4.003123
+11 (1)	-0.212407	-4.091438	-3.879031

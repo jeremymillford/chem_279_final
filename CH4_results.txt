@@ -1,0 +1,54 @@
+Molecule: CH4
+Filepath: hydrocarbon_structures/CH4.txt
+Number of atoms: 5
+Number of valence electrons: 8
+Alpha electrons: 4, Beta electrons: 4
+
+========================================
+[CNDO/2] Results with orthonormal basis (S = I)
+Calculation time: 0.362859 seconds
+Nuclear Repulsion Energy: 491.317277 eV
+Electronic Energy: -672.520146 eV
+Total Energy: -181.202869 eV
+Energy per atom: -36.240574 eV/atom
+Energy per electron: -22.650359 eV/electron
+
+[CNDO/S] Results with overlap matrix (S ≠ I)
+Calculation time: 0.204152 seconds
+Nuclear Repulsion Energy: 491.317277 eV
+Electronic Energy: -1396.325755 eV
+Total Energy: -905.008478 eV
+Energy per atom: -181.001696 eV/atom
+Energy per electron: -113.126060 eV/electron
+
+[COMPARISON] CNDO/S vs CNDO/2 Differences
+Nuclear Repulsion Energy Difference: 0.000000 eV
+Electronic Energy Difference: -723.805609 eV
+Total Energy Difference: -723.805609 eV
+Relative Energy Difference: -399.444895%
+
+[GRADIENTS]
+CNDO/2 Gradients:
+Atom 0 (6): x: -9.534837 y: 11.035268 z: 11.035268 magnitude: 18.288450
+Atom 1 (1): x: -64.246613 y: -64.246613 z: -64.246613 magnitude: 111.278399
+Atom 2 (1): x: 64.246613 y: 64.246613 z: -64.246613 magnitude: 111.278399
+Atom 3 (1): x: 64.246613 y: -64.246613 z: 64.246613 magnitude: 111.278399
+Atom 4 (1): x: -53.507794 y: 54.415328 z: 54.415328 magnitude: 93.729077
+Total gradient norm: 215.100566
+
+CNDO/S Gradients:
+Atom 0 (6): x: -34.995768 y: 39.569522 z: 38.593382 magnitude: 65.420944
+Atom 1 (1): x: -71.711492 y: -72.194817 z: -72.594871 magnitude: 124.998580
+Atom 2 (1): x: 73.242399 y: 72.711760 z: -72.359822 magnitude: 126.045202
+Atom 3 (1): x: 72.710451 y: -73.309012 z: 73.706454 magnitude: 126.860799
+Atom 4 (1): x: -40.397397 y: 32.008023 z: 31.408708 magnitude: 60.357023
+Total gradient norm: 235.645009
+
+[ELECTRON DENSITY]
+Atomic Charges:
+Atom	CNDO/2	CNDO/S	Difference
+0 (6)	-0.395410	3.874242	4.269651
+1 (1)	0.098852	-3.235221	-3.334073
+2 (1)	0.098852	-3.179529	-3.278382
+3 (1)	0.098852	-3.073811	-3.172663
+4 (1)	0.098852	-2.944983	-3.043835
