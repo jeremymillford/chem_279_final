@@ -17,9 +17,9 @@
 #include "Central_Difference.cpp"
 
 constexpr int NUM_CONTRACTED = 3; 
-constexpr double CONVERSION_FACTOR = 27.211; // eV / atomic unit 
+constexpr double CONVERSION_FACTOR = 27.2114; // eV / atomic unit 
 
-// Semi-Empirical parameters that define the CNDO/2 model (units eV)
+// Semi-Empirical parameters that define the MINDO/3 model (units eV)
 // NOTE SOMETHING VERY SKETCHY. I AM STORING INTS IN THIS DOUBLE CONTAINER. I SHOULD BE SCARED OF THIS. 
 const std::map<int, std::map<std::string, double>> PARAMETER_INFO {
     {1, {
@@ -27,7 +27,10 @@ const std::map<int, std::map<std::string, double>> PARAMETER_INFO {
         {"Valence Atoms", 1},
         {"1/2(Is + As)", 7.176},
         {"-Beta", 9.0},
-        {"I1", -13.598}  
+        {"I1", -13.598},
+        {"U_s", -12.505},
+        {"g_ss", 12.848},
+        {"slaterS", 1.30} 
     }},
     {6, {
         {"Valence Orbitals", 4},
@@ -36,7 +39,17 @@ const std::map<int, std::map<std::string, double>> PARAMETER_INFO {
         {"1/2(Ip + Ap)", 5.572},
         {"-Beta", 21},
         {"I1", -11.260},
-        {"I2", -24.383}  
+        {"I2", -24.383},
+        {"U_s", -51.79},
+        {"U_p", -39.18},
+        {"g_ss", 12.23},
+        {"g_pp", 11.08},
+        {"g_sp", 11.47},
+        {"g_pp'", 9.84},
+        {"h_sp", 2.43},
+        {"h_pp'", 0.62},
+        {"slaterS", 1.739391},
+        {"slaterP", 1.709645}
     }},
     {7, {
         {"Valence Orbitals", 4},
@@ -45,7 +58,17 @@ const std::map<int, std::map<std::string, double>> PARAMETER_INFO {
         {"1/2(Ip + Ap)", 7.275},
         {"-Beta", 25}, 
         {"I1", -14.534},
-        {"I2", -29.601} 
+        {"I2", -29.601},
+        {"U_s", -66.06},
+        {"U_p", -56.40},
+        {"g_ss", 13.59},
+        {"g_pp", 12.98},
+        {"g_sp", 12.66},
+        {"g_pp'", 11.59},
+        {"h_sp", 3.14},
+        {"h_pp'", 0.70},
+        {"slaterS", 2.704546},
+        {"slaterP", 1.870839}   
     }},
     {8, {
         {"Valence Orbitals", 4},
@@ -54,7 +77,17 @@ const std::map<int, std::map<std::string, double>> PARAMETER_INFO {
         {"1/2(Ip + Ap)", 9.111},
         {"-Beta", 31}, 
         {"I1", -13.618},
-        {"I2", -35.117} 
+        {"I2", -35.117},
+        {"U_s", -91.73},
+        {"U_p", -78.80},
+        {"g_ss", 15.42},
+        {"g_pp", 14.52},
+        {"g_sp", 14.48},
+        {"g_pp'", 12.98},
+        {"h_sp", 3.94},
+        {"h_pp'", 0.77},
+        {"slaterS", 3.640575},
+        {"slaterP", 2.168448}   
     }},
     {9, {
         {"Valence Orbitals", 4},
@@ -63,7 +96,17 @@ const std::map<int, std::map<std::string, double>> PARAMETER_INFO {
         {"1/2(Ip + Ap)", 11.080},
         {"-Beta", 39},
         {"I1", -17.423},
-        {"I2", -34.971}  
+        {"I2", -34.971},
+        {"U_s", -129.86},
+        {"U_p", -105.93},
+        {"g_ss", 16.92},
+        {"g_pp", 16.71},
+        {"g_sp", 17.25},
+        {"g_pp'", 14.91},
+        {"h_sp", 4.83},
+        {"h_pp'", 0.90},
+        {"slaterS", 3.111270},
+        {"slaterP", 1.419860}   
     }},
 };
 
@@ -95,6 +138,15 @@ const std::map<std::string, Eigen::Vector3d> F_INFO {
     {"s contraction", Eigen::Vector3d{-0.09996723, 0.39951283, 0.70011547}},
     {"p contraction", Eigen::Vector3d{ 0.15591627, 0.60768372, 0.39195739}},
 }; 
+
+const std::map<std::pair<int,int>,double> BETA_FACTOR {
+  {{1,1}, 0.244770},  // HH
+  {{1,6}, 0.315011},  // HC  (and symmetrically CH)
+  {{6,6}, 0.419907},  // CC
+  {{6,8}, 0.464514},  // CO
+  {{1,8}, 0.417759},  // HO
+  {{8,8}, 0.659407}   // OO
+};
 
 const std::map<int, std::map<std::string, Eigen::Vector3d>> BASIS_INFO {
     {1, H_INFO}, 
@@ -195,6 +247,49 @@ int get_total_valence_electrons(const std::vector<Atom> atoms){
         sum += static_cast<int>(get_Z(atom)); 
     }
     return sum; 
+}
+
+// MINDO/3 Specific Functions
+// Get one-eletron core for basis
+double get_U(const ContractedGaussian &cg) {
+  // s‐shell?
+  if (cg.gaussians.front().power.sum()==0)
+    return PARAMETER_INFO.at(cg.z_num).at("U_s");
+  else  // p‐shell
+    return PARAMETER_INFO.at(cg.z_num).at("U_p");
+}
+
+// get the b_AB for a pair of atoms A and B
+double get_b_factor(const Atom &A, const Atom &B) {
+  auto key = std::minmax(A.z_num,B.z_num);
+  return BETA_FACTOR.at(key);
+}
+
+// computes Mulliken orbitals and atoms
+void compute_mulliken_populations(
+    const Eigen::MatrixXd &p_total,
+    const Eigen::MatrixXd &S,
+    const std::vector<Atom> &atoms,
+    std::vector<double> &q_orb,
+    Eigen::VectorXd &q_atom
+) {
+    int N = p_total.rows();
+    q_orb.assign(N, 0.0);
+
+    // q_i = ∑_j P_tot(i,j) · S(i,j)
+    for (int i = 0; i < N; ++i)
+      for (int j = 0; j < N; ++j)
+        q_orb[i] += p_total(i,j) * S(i,j);
+
+    // q_A = ∑_{i ∈ A} q_i
+    q_atom = Eigen::VectorXd::Zero(atoms.size());
+    int idx = 0;
+    for (int A = 0; A < atoms.size(); ++A) {
+      int nA = static_cast<int>(PARAMETER_INFO.at(atoms[A].z_num)
+                                  .at("Valence Orbitals"));
+      for (int k = 0; k < nA; ++k)
+        q_atom[A] += q_orb[idx++];
+    }
 }
 
 // Helper lookup function to build the density matrix 
@@ -425,31 +520,55 @@ double get_on_diagonal_fock_element(
     result += get_third_term_of_1_4(A, atoms, p_total_atomwise_diag_vector, gamma);
     return result; 
 }
-//* changes made here */
+
 // returns the on diagonal fock matrix element for the spin type
-// Offdiagonal Calculation fro INDO 
+// Offdiagonal Calculation for INDO
+// double get_off_diagonal_fock_element(
+//     const int A, 
+//     const int B, 
+//     const int u, 
+//     const int v,
+//     const std::vector<Atom> &atoms, 
+//     const Eigen::MatrixXd &s, 
+//     const Eigen::MatrixXd &p_spin, 
+//     const Eigen::MatrixXd &gamma
+//     )
+// {
+//     int num_basis = get_vector_of_contracted_gaussians(atoms).size();
+//     double offdiag_elem = 0.0;
+//     for (int k = 0; k < num_basis; k++) { 
+//         for (int l = 0; l < num_basis; l++) {
+//             if (k == u && l == v) {
+//                 offdiag_elem += p_spin(k, l) * gamma(A, B);
+//             }
+//         }
+//     }
+//     return ((0.5) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))) - offdiag_elem;  
+// }
+
 double get_off_diagonal_fock_element(
-    const int A, 
-    const int B, 
+    const int A,
+    const int B,
     const int u, 
     const int v,
-    const std::vector<Atom> &atoms, 
-    const Eigen::MatrixXd &s, 
-    const Eigen::MatrixXd &p_spin, 
+    const std::vector<Atom> &atoms,
+    const Eigen::MatrixXd &s,
+    const Eigen::MatrixXd &p_spin,
     const Eigen::MatrixXd &gamma
-    )
-{
-    int num_basis = get_vector_of_contracted_gaussians(atoms).size();
-    double offdiag_elem = 0.0;
-    for (int k = 0; k < num_basis; k++) { 
-        for (int l = 0; l < num_basis; l++) {
-            if (k == u && l == v) {
-                offdiag_elem += p_spin(k, l) * gamma(A, B);
-            }
-        }
-    }
-    return ((0.5) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))) - offdiag_elem;  
+) {
+  std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms);
+  double S_uv = s(u,v);
+  double beta_AB = get_b_factor(atoms[A], atoms[B]);
+  double U_u    = get_U(vcg[u]);
+  double U_v    = get_U(vcg[v]);
+  double term1  = S_uv * (U_u + U_v) * beta_AB;
+
+  double gammaAB = gamma(A, B);  
+  double term2  = p_spin(u,v) * gammaAB;
+
+  return term1 - term2;
 }
+
 
 // get the fock matrix 
 Eigen::MatrixXd get_fock(
@@ -462,8 +581,13 @@ Eigen::MatrixXd get_fock(
 
     std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms); // Vector of contracted Gaussians
     Eigen::MatrixXd gamma = get_gamma(atoms); 
-    Eigen::VectorXd p_total_atomwise_diag_vector = get_p_total_atomwise_diag_vector(atoms, p_total);
+    // Eigen::VectorXd p_total_atomwise_diag_vector = get_p_total_atomwise_diag_vector(atoms, p_total);
     Eigen::MatrixXd s = make_overlap_matrix(vcg); 
+
+    std::vector<double> q_orb;
+    Eigen::VectorXd q_atom;
+
+    compute_mulliken_populations(p_total, s, atoms, q_orb, q_atom);
     
     int u = 0; 
     for(int A = 0; A < atoms.size(); A++){ 
@@ -476,7 +600,20 @@ Eigen::MatrixXd get_fock(
                 for (int index_in_B = 0; index_in_B < num_B_orbitals; index_in_B++){
                     // Iterating through v, first through atoms, then through contracted gaussians
                     if (u == v) { // On Diagonal 
-                        f(u,u) = get_on_diagonal_fock_element(A, u, atoms, vcg, p_spin, p_total, p_total_atomwise_diag_vector, gamma); 
+                        double Ucore = get_half_IuAu(vcg[u]);
+                        double Z_A = get_Z(atoms[A]);
+                        double q_i = q_orb[u];
+                        double q_A = q_atom[A];
+
+                        double self_interaction = (q_A - Z_A) - (q_i - 0.5);
+
+                        double pairwise_term = 0.0;
+                        for (int C = 0; C < atoms.size(); C++) {
+                            if (C == A) { continue; }
+                            double Z_C = get_Z(atoms[C]);
+                            pairwise_term += (q_atom[C] - Z_C) * gamma(A, C);
+                        }
+                        f(u,u) = -Ucore + self_interaction * gamma(A, A) + pairwise_term;
                     } else { // Off Diagonal
                         f(u,v) = get_off_diagonal_fock_element(A, B, u, v, atoms, s, p_spin, gamma); 
                     }
@@ -520,7 +657,30 @@ double get_on_diagonal_hamiltonian_element(
     return result; 
 }
 
-// Helper function which returns an off diagonal element of the hamiltonian 
+// double get_on_diagonal_hamiltonian_element(
+//     const int A, 
+//     const int u,
+//     const std::vector<Atom> &atoms,
+//     const std::vector<ContractedGaussian>& vcg,
+//     const Eigen::MatrixXd &gamma) {
+
+//   double U_i  = get_U(vcg[u]);
+//   double q_i  = 0.0;
+//   double Z_A  = PARAMETER_INFO.at(atoms[A].z_num).at("Valence Atoms");
+
+//   // “third term” Σ_{B≠A}(q_B − Z_B) γ_AB
+//   double sum = 0;
+//   for (int B = 0; B < atoms.size(); B++) {
+//     if (B != A) {
+//         sum += (q_atom[B] - PARAMETER_INFO.at(atoms[B].z_num).at("Valence Atoms"))
+//             * gamma(A,B);
+//     }
+//   }
+
+//   return U_i - (q_i - 0.5) * gamma(A, A) - sum;
+// }
+
+// // Helper function which returns an off diagonal element of the hamiltonian 
 double get_off_diagonal_hamiltonian_element(
     const int A, 
     const int B, 
@@ -533,8 +693,19 @@ double get_off_diagonal_hamiltonian_element(
     double I_mu = get_IE(vcg[u]);
     double I_nu = get_IE(vcg[v]);
 
-    return ((I_mu + I_nu / CONVERSION_FACTOR) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))); 
+    return (((I_mu - I_nu) / CONVERSION_FACTOR) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))); 
 }
+
+// double get_off_diagonal_hamiltonian_element(
+//     const int A, 
+//     const int B, 
+//     const int u, 
+//     const int v, 
+//     const std::vector<Atom> &atoms,
+//     const Eigen::MatrixXd &s)
+// {
+//     return ((0.5) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))); 
+// }
 
 
 // Helper to make the core hamiltonian matrix
@@ -571,8 +742,8 @@ Eigen::MatrixXd get_hamiltonian(const std::vector<Atom> &atoms){
     return h; 
 }
 
-// runs CNDO2 till convergence and returns the density matricies 
-std::pair<Eigen::MatrixXd,Eigen::MatrixXd> run_CNDO2(
+// runs MINDO/3 till convergence and returns the density matricies 
+std::pair<Eigen::MatrixXd,Eigen::MatrixXd> run_MINDO3(
     const std::vector<Atom> &atoms, 
     const int p, 
     const int q, 
@@ -760,8 +931,8 @@ Eigen::VectorX<Eigen::Vector3d> get_nuclear_energy_dir(
     return nuclear_energy_dir; 
 }
 
-// This calculates the energy of a converged density matrix in CNDO2 
-double E_CNDO2(
+// This calculates the energy of a converged density matrix in MINDO/3 
+double E_MINDO3(
     const Eigen::MatrixXd &p_alpha, 
     const Eigen::MatrixXd &p_beta, 
     const std::vector<Atom> &atoms
