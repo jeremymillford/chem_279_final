@@ -31,3 +31,7 @@ WORKDIR /app/Bin
 
 # Command to provide a bash shell for interactive use
 CMD ["/bin/bash"]
+
+# usage
+# docker build -t chem279_final .
+# docker run -it -v $(pwd)/molecules:/app/molecules chem279_final
