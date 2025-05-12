@@ -1,0 +1,161 @@
+Loaded molecule: hydrocarbon_structures/CH4.txt
+Number of atoms: 5
+Alpha electrons: 4, Beta electrons: 4
+[CNDO/S Simplified] Using overlap matrix with simplified model
+Starting SCF iterations with fixed-damping DIIS...
+Iteration 0 delta: 2.20746 (damping: 0.2, DIIS dim: 1, level shift: 0.01, error: 398.924)
+Iteration 10 delta: 1.1534 (damping: 0.2, DIIS dim: 5, level shift: 0.11, error: 215.466)
+Iteration 20 delta: 0.800103 (damping: 0.2, DIIS dim: 5, level shift: 0.21, error: 204.322)
+Applied small perturbation at iteration 29
+Iteration 30 delta: 1.28893 (damping: 0.2, DIIS dim: 5, level shift: 0.31, error: 229.592)
+Iteration 40 delta: 0.792138 (damping: 0.2, DIIS dim: 5, level shift: 0.41, error: 187.893)
+Iteration 50 delta: 0.448593 (damping: 0.2, DIIS dim: 5, level shift: 0.51, error: 218.659)
+Applied small perturbation at iteration 59
+Iteration 60 delta: 0.199123 (damping: 0.2, DIIS dim: 5, level shift: 0.61, error: 174.798)
+Iteration 70 delta: 0.205128 (damping: 0.2, DIIS dim: 5, level shift: 0.71, error: 127.725)
+Iteration 80 delta: 0.208886 (damping: 0.2, DIIS dim: 5, level shift: 0.81, error: 126.569)
+Applied small perturbation at iteration 89
+Iteration 90 delta: 0.297915 (damping: 0.2, DIIS dim: 5, level shift: 0.91, error: 125.217)
+Iteration 100 delta: 0.100429 (damping: 0.2, DIIS dim: 5, level shift: 1, error: 117.956)
+Iteration 110 delta: 0.128458 (damping: 0.2, DIIS dim: 5, level shift: 1, error: 115.147)
+Applied small perturbation at iteration 119
+Iteration 120 delta: 0.107055 (damping: 0.2, DIIS dim: 5, level shift: 1, error: 119.384)
+Iteration 130 delta: 0.235702 (damping: 0.2, DIIS dim: 5, level shift: 1, error: 119.015)
+Iteration 140 delta: 0.105667 (damping: 0.2, DIIS dim: 5, level shift: 1, error: 123.127)
+Applied small perturbation at iteration 149
+WARNING: SCF did not converge after 150 iterations.
+Returning best approximate solution.
+
+Energy Results:
+-------------------------------
+Nuclear Repulsion Energy: 491.317277 eV
+Electronic Energy: -1396.325755 eV
+Total Energy: -905.008478 eV
+-------------------------------
+x
+ -0.434708  -0.063420   0.098830   0.261636  -0.754284   0.192950   1.561328   3.682432
+ -0.069722  -1.635892  -0.046164  -0.054658   7.630042  -5.263287  -7.400340   5.391033
+  0.107788  -0.035816  -1.521395   0.034276   6.618923  -6.572199   6.967209  -6.094639
+  0.274659  -0.038561   0.027597  -1.689855   6.105936   8.261576  -5.145760  -7.227546
+ -0.759099   7.619529   6.620490   6.110090 -76.233971  17.626234  18.320231  18.366041
+  0.181460  -5.275573  -6.564296   8.258245  17.627980 -75.231528  19.945414  19.597967
+  1.547002  -7.414419   6.942244  -5.147241  18.316672  19.959222 -73.328594  20.296852
+  3.679745   5.401589  -6.108006  -7.224813  18.370807  19.601737  20.293645 -71.009692
+y
+ -0.992596   0.000000   0.000000   0.000000 -16.611985 -16.395622 -15.982269 -15.483002
+  0.000000   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+  0.000000   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+  0.000000   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000   0.000000
+-16.611939   0.000000   0.000000   0.000000   0.496848   8.806654   8.424399   8.006702
+-16.395607   0.000000   0.000000   0.000000   8.806560   0.374305   8.158047   7.770869
+-15.982180   0.000000   0.000000   0.000000   8.424643   8.157191   0.149926   7.413739
+-15.483127   0.000000   0.000000   0.000000   8.006429   7.770640   7.413943  -0.124577
+Suv_RA (A is the center of u)
+s 00/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 01/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 02/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 03/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 04/dR_A is: x:+0.1658 y:+0.1658 z: +0.1658
+s 05/dR_A is: x:-0.1658 y:-0.1658 z: +0.1658
+s 06/dR_A is: x:-0.1658 y:+0.1658 z: -0.1658
+s 07/dR_A is: x:+0.1658 y:-0.1658 z: -0.1658
+s 10/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 11/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 12/dR_A is: x:+0.0000 y:+0.6291 z: -0.6291
+s 13/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 14/dR_A is: x:-0.3675 y:+0.1058 z: +0.1058
+s 15/dR_A is: x:-0.3675 y:+0.1058 z: -0.1058
+s 16/dR_A is: x:-0.3675 y:-0.1058 z: +0.1058
+s 17/dR_A is: x:-0.3675 y:-0.1058 z: -0.1058
+s 20/dR_A is: x:+0.0000 y:+0.6835 z: +0.0000
+s 21/dR_A is: x:+0.4446 y:+0.0000 z: +0.0000
+s 22/dR_A is: x:-0.6291 y:+0.1689 z: +0.0000
+s 23/dR_A is: x:+0.0000 y:+0.6835 z: +0.0000
+s 24/dR_A is: x:+0.1058 y:-0.3675 z: +0.1058
+s 25/dR_A is: x:+0.1058 y:-0.3675 z: -0.1058
+s 26/dR_A is: x:-0.1058 y:-0.3675 z: -0.1058
+s 27/dR_A is: x:-0.1058 y:-0.3675 z: +0.1058
+s 30/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 31/dR_A is: x:+0.0000 y:-0.6291 z: +3.4253
+s 32/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 33/dR_A is: x:+1.4979 y:+0.0000 z: +0.0000
+s 34/dR_A is: x:+0.1058 y:+0.1058 z: -0.3675
+s 35/dR_A is: x:-0.1058 y:-0.1058 z: -0.3675
+s 36/dR_A is: x:+0.1058 y:-0.1058 z: -0.3675
+s 37/dR_A is: x:-0.1058 y:+0.1058 z: -0.3675
+s 40/dR_A is: x:-0.1658 y:-0.1658 z: -0.1658
+s 41/dR_A is: x:+0.3675 y:-0.1058 z: -0.1058
+s 42/dR_A is: x:-0.1058 y:+0.3675 z: -0.1058
+s 43/dR_A is: x:-0.1058 y:-0.1058 z: +0.3675
+s 44/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 45/dR_A is: x:-0.2283 y:-0.2283 z: -0.0000
+s 46/dR_A is: x:-0.2283 y:-0.0000 z: -0.2283
+s 47/dR_A is: x:-0.0000 y:-0.2283 z: -0.2283
+s 50/dR_A is: x:+0.1658 y:+0.1658 z: -0.1658
+s 51/dR_A is: x:+0.3675 y:-0.1058 z: +0.1058
+s 52/dR_A is: x:-0.1058 y:+0.3675 z: +0.1058
+s 53/dR_A is: x:+0.1058 y:+0.1058 z: +0.3675
+s 54/dR_A is: x:+0.2283 y:+0.2283 z: -0.0000
+s 55/dR_A is: x:+2.9412 y:+0.0000 z: +0.0000
+s 56/dR_A is: x:+0.0000 y:+0.2283 z: -0.2283
+s 57/dR_A is: x:+0.2283 y:+0.0000 z: -0.2283
+s 60/dR_A is: x:+0.1658 y:-0.1658 z: +0.1658
+s 61/dR_A is: x:+0.3675 y:+0.1058 z: -0.1058
+s 62/dR_A is: x:+0.1058 y:+0.3675 z: +0.1058
+s 63/dR_A is: x:-0.1058 y:+0.1058 z: +0.3675
+s 64/dR_A is: x:+0.2283 y:-0.0000 z: +0.2283
+s 65/dR_A is: x:+0.0000 y:-0.2283 z: +0.2283
+s 66/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 67/dR_A is: x:+0.2283 y:-0.2283 z: +0.0000
+s 70/dR_A is: x:-0.1658 y:+0.1658 z: +0.1658
+s 71/dR_A is: x:+0.3675 y:+0.1058 z: +0.1058
+s 72/dR_A is: x:+0.1058 y:+0.3675 z: -0.1058
+s 73/dR_A is: x:+0.1058 y:-0.1058 z: +0.3675
+s 74/dR_A is: x:-0.0000 y:+0.2283 z: +0.2283
+s 75/dR_A is: x:-0.2283 y:+0.0000 z: +0.2283
+s 76/dR_A is: x:-0.2283 y:+0.2283 z: +0.0000
+s 77/dR_A is: x:+0.6077 y:+0.0000 z: +0.0000
+gammaAB_RA
+gamma 00/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+gamma 01/dR_A is: x:+2.2734 y:+2.2734 z: +2.2734
+gamma 02/dR_A is: x:-2.2734 y:-2.2734 z: +2.2734
+gamma 03/dR_A is: x:-2.2734 y:+2.2734 z: -2.2734
+gamma 04/dR_A is: x:+2.2734 y:-2.2734 z: -2.2734
+gamma 10/dR_A is: x:-2.2734 y:-2.2734 z: -2.2734
+gamma 11/dR_A is: x:-0.0000 y:-7.2285 z: -7.1352
+gamma 12/dR_A is: x:-8.5307 y:-1.3219 z: -0.6859
+gamma 13/dR_A is: x:+9.7012 y:-0.2630 z: -0.0386
+gamma 14/dR_A is: x:+24.9888 y:+35.1190 z: +43.1490
+gamma 20/dR_A is: x:+2.2734 y:+2.2734 z: -2.2734
+gamma 21/dR_A is: x:+8.5307 y:+8.5239 z: -15.3990
+gamma 22/dR_A is: x:+0.0000 y:+1.1881 z: -17.2445
+gamma 23/dR_A is: x:+24.9887 y:-31.4384 z: -36.2151
+gamma 24/dR_A is: x:-263.0495 y:-98.6714 z: -86.8932
+gamma 30/dR_A is: x:+2.2734 y:-2.2734 z: +2.2734
+gamma 31/dR_A is: x:+6.3435 y:+6.4515 z: +7.2285
+gamma 32/dR_A is: x:+8.0532 y:-8.0602 z: -8.5239
+gamma 33/dR_A is: x:+18.8046 y:-24.7625 z: -0.2631
+gamma 34/dR_A is: x:-71.5789 y:+298.3575 z: -31.4384
+gamma 40/dR_A is: x:-2.2734 y:+2.2734 z: +2.2734
+gamma 41/dR_A is: x:-0.0000 y:+1.0604 z: +1.3219
+gamma 42/dR_A is: x:-1.9802 y:-1.3408 z: -1.1881
+gamma 43/dR_A is: x:+9.1512 y:+4.4576 z: +35.1190
+gamma 44/dR_A is: x:-22.4808 y:+55.2463 z: -98.6715
+gradient (Nuclear part)
+x: +0.0000 y: +0.0000 z: +0.0000
+x: -65.0820 y: -65.0820 z: -65.0820
+x: +65.0820 y: +65.0820 z: -65.0820
+x: +65.0820 y: -65.0820 z: +65.0820
+x: -65.0820 y: +65.0820 z: +65.0820
+gradient (Electron part)
+x: -34.9958 y: +39.5695 z: +38.5934
+x: -6.6295 y: -7.1128 z: -7.5128
+x: +8.1604 y: +7.6297 z: -7.2778
+x: +7.6284 y: -8.2270 z: +8.6244
+x: +24.6846 y: -33.0740 z: -33.6733
+gradient
+x: -34.9958 y: +39.5695 z: +38.5934
+x: -71.7115 y: -72.1948 z: -72.5949
+x: +73.2424 y: +72.7118 z: -72.3598
+x: +72.7105 y: -73.3090 z: +73.7065
+x: -40.3974 y: +32.0080 z: +31.4087
