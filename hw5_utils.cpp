@@ -1,13 +1,11 @@
 #pragma once
 
 #include <vector>
-#include <tuple>
 #include <map> 
 #include <Eigen/Dense>
 #include <iostream> 
 #include <fstream> 
 #include <sstream> 
-#include <filesystem>
 #include <utility> 
 #include <exception>
 #include <numeric> 
@@ -19,7 +17,7 @@
 #include "Central_Difference.cpp"
 
 constexpr int NUM_CONTRACTED = 3; 
-constexpr double CONVERSION_FACTOR = 27.2114; // eV / atomic unit 
+constexpr double CONVERSION_FACTOR = 27.211; // eV / atomic unit 
 
 // Semi-Empirical parameters that define the CNDO/2 model (units eV)
 // NOTE SOMETHING VERY SKETCHY. I AM STORING INTS IN THIS DOUBLE CONTAINER. I SHOULD BE SCARED OF THIS. 
@@ -28,87 +26,35 @@ const std::map<int, std::map<std::string, double>> PARAMETER_INFO {
         {"Valence Orbitals", 1},
         {"Valence Atoms", 1},
         {"1/2(Is + As)", 7.176},
-        {"-Beta", 9.0},
-        {"I1", -13.598},
-        {"U_s", -12.505},
-        {"g_ss", 12.848},
-        {"slaterS", 1.30} 
+        {"-Beta", 9.0},  
     }},
     {6, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 4},
         {"1/2(Is + As)", 14.051},
         {"1/2(Ip + Ap)", 5.572},
-        {"-Beta", 21},
-        {"I1", -11.260},
-        {"I2", -24.383},
-        {"U_s", -51.79},
-        {"U_p", -39.18},
-        {"g_ss", 12.23},
-        {"g_pp", 11.08},
-        {"g_sp", 11.47},
-        {"g_pp'", 9.84},
-        {"h_sp", 2.43},
-        {"h_pp'", 0.62},
-        {"slaterS", 1.739391},
-        {"slaterP", 1.709645}
+        {"-Beta", 21},  
     }},
     {7, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 5},
         {"1/2(Is + As)", 19.316},
         {"1/2(Ip + Ap)", 7.275},
-        {"-Beta", 25}, 
-        {"I1", -14.534},
-        {"I2", -29.601},
-        {"U_s", -66.06},
-        {"U_p", -56.40},
-        {"g_ss", 13.59},
-        {"g_pp", 12.98},
-        {"g_sp", 12.66},
-        {"g_pp'", 11.59},
-        {"h_sp", 3.14},
-        {"h_pp'", 0.70},
-        {"slaterS", 2.704546},
-        {"slaterP", 1.870839}   
+        {"-Beta", 25},  
     }},
     {8, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 6},
         {"1/2(Is + As)", 25.390},
         {"1/2(Ip + Ap)", 9.111},
-        {"-Beta", 31}, 
-        {"I1", -13.618},
-        {"I2", -35.117},
-        {"U_s", -91.73},
-        {"U_p", -78.80},
-        {"g_ss", 15.42},
-        {"g_pp", 14.52},
-        {"g_sp", 14.48},
-        {"g_pp'", 12.98},
-        {"h_sp", 3.94},
-        {"h_pp'", 0.77},
-        {"slaterS", 3.640575},
-        {"slaterP", 2.168448}   
+        {"-Beta", 31},  
     }},
     {9, {
         {"Valence Orbitals", 4},
         {"Valence Atoms", 7},
         {"1/2(Is + As)", 32.272},
         {"1/2(Ip + Ap)", 11.080},
-        {"-Beta", 39},
-        {"I1", -17.423},
-        {"I2", -34.971},
-        {"U_s", -129.86},
-        {"U_p", -105.93},
-        {"g_ss", 16.92},
-        {"g_pp", 16.71},
-        {"g_sp", 17.25},
-        {"g_pp'", 14.91},
-        {"h_sp", 4.83},
-        {"h_pp'", 0.90},
-        {"slaterS", 3.111270},
-        {"slaterP", 1.419860}   
+        {"-Beta", 39},  
     }},
 };
 
@@ -140,20 +86,6 @@ const std::map<std::string, Eigen::Vector3d> F_INFO {
     {"s contraction", Eigen::Vector3d{-0.09996723, 0.39951283, 0.70011547}},
     {"p contraction", Eigen::Vector3d{ 0.15591627, 0.60768372, 0.39195739}},
 }; 
-
-const std::map<std::pair<int,int>,double> BETA_FACTOR {
-  {{1,1}, 0.244770},  // HH
-  {{1,6}, 0.315011},  // HC 
-  {{6,6}, 0.419907},  // CC
-  {{6,8}, 0.464514},  // CO
-  {{1,8}, 0.417759},  // HO
-  {{8,8}, 0.659407}   // OO
-};
-
-static const std::map<int,double> cov_rad {
-  {1, 0.31},   // H
-  {6, 0.76},   // C
-};
 
 const std::map<int, std::map<std::string, Eigen::Vector3d>> BASIS_INFO {
     {1, H_INFO}, 
@@ -389,10 +321,6 @@ double get_half_IuAu(const ContractedGaussian &cg){
     throw std::runtime_error("The shell for this contracted gaussian isn't s or p");   
 }
 
-double get_IE(const ContractedGaussian &cg) {
-    return PARAMETER_INFO.at(cg.z_num).at("I1"); 
-}
-
 // Helper to get B_? in atomic units 
 double get_B(const Atom &atom){
     return (-1 * PARAMETER_INFO.at(atom.z_num).at("-Beta")); // / CONVERSION_FACTOR);
@@ -602,29 +530,6 @@ double get_off_diagonal_fock_element(
     return ((0.5) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))) - (p_spin(u,v) * gamma(A,B));  
 }
 
-double get_off_diagonal_fock_element_mindo(
-    const int A,
-    const int B,
-    const int u, 
-    const int v,
-    const std::vector<Atom> &atoms,
-    const Eigen::MatrixXd &s,
-    const Eigen::MatrixXd &p_spin,
-    const Eigen::MatrixXd &gamma
-) {
-  std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms);
-  double S_uv = s(u,v);
-  double beta_AB = get_b_factor(atoms[A], atoms[B]);
-  double U_u    = get_U(vcg[u]);
-  double U_v    = get_U(vcg[v]);
-  double term1  = S_uv * (U_u + U_v) * beta_AB;
-
-  double gammaAB = gamma(A, B);  
-  double term2  = p_spin(u,v) * gammaAB;
-
-  return term1 - term2;
-}
-
 // get the fock matrix 
 Eigen::MatrixXd get_fock(
         const std::vector<Atom> &atoms, 
@@ -663,6 +568,7 @@ Eigen::MatrixXd get_fock(
 
     return f; 
 }
+
 
 Eigen::MatrixXd get_fock_mindo(
         const std::vector<Atom> &atoms, 
@@ -720,6 +626,7 @@ Eigen::MatrixXd get_fock_mindo(
     return f; 
 }
 
+
 // Helper to get the third term of 1.4 
 double get_third_term_of_2_6(
     const int A, 
@@ -762,21 +669,6 @@ double get_off_diagonal_hamiltonian_element(
     return ((0.5) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))); 
 }
 
-double get_off_diagonal_hamiltonian_element_mindo(
-    const int A, 
-    const int B, 
-    const int u, 
-    const int v, 
-    const std::vector<Atom> &atoms,
-    const Eigen::MatrixXd &s)
-{
-    std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms); 
-    double I_mu = get_IE(vcg[u]);
-    double I_nu = get_IE(vcg[v]);
-
-    return (((I_mu - I_nu) / CONVERSION_FACTOR) * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * (s(u,v))); 
-}
-
 
 // Helper to make the core hamiltonian matrix
 Eigen::MatrixXd get_hamiltonian(const std::vector<Atom> &atoms){
@@ -811,101 +703,688 @@ Eigen::MatrixXd get_hamiltonian(const std::vector<Atom> &atoms){
     
     return h; 
 }
+std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
+run_CNDO_S_simplified(const std::vector<Atom>& atoms, int p, int q, double tol = 1e-6, bool verbose = false) {
+    // Build basis and matrices
+    std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms);
+    Eigen::MatrixXd S = make_overlap_matrix(vcg);
+    Eigen::MatrixXd gamma = get_gamma(atoms);
+    int n = S.rows();
 
-Eigen::MatrixXd get_hamiltonian_mindo(const std::vector<Atom> &atoms){
-    const int N = get_total_valence_orbitals(atoms); 
-    Eigen::MatrixXd h = Eigen::MatrixXd::Zero(N,N);
-
-    std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms);  
-    Eigen::MatrixXd s = make_overlap_matrix(vcg);
-    Eigen::MatrixXd gamma = get_gamma(atoms); 
-
-    int u = 0; 
-    for(int A = 0; A < atoms.size(); A++){ 
-        int num_A_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(A).z_num).at("Valence Orbitals")); 
-        for (int index_in_A = 0; index_in_A < num_A_orbitals; index_in_A++){
-            // Iterating through u, first through atoms, then through contracted gaussians 
-            int v = 0; 
-            for (int B = 0; B < atoms.size(); B++){
-                int num_B_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(B).z_num).at("Valence Orbitals"));
-                for (int index_in_B = 0; index_in_B < num_B_orbitals; index_in_B++){
-                    // Iterating through v, first through atoms, then through contracted gaussians
-                    if (u == v) { // On Diagonal 
-                        h(u,u) = get_on_diagonal_hamiltonian_element(A, u, atoms, vcg, gamma); 
-                    } else { // Off Diagonal
-                        h(u,v) = get_off_diagonal_hamiltonian_element_mindo(A, B, u, v, atoms, s); 
+    // Calculate core hamiltonian once
+    Eigen::MatrixXd h = get_hamiltonian(atoms);
+    
+    // Initial density matrices - start with core hamiltonian guess
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_h(h);
+    Eigen::MatrixXd C_init = es_h.eigenvectors();
+    
+    Eigen::MatrixXd p_alpha = Eigen::MatrixXd::Zero(n, n);
+    Eigen::MatrixXd p_beta = Eigen::MatrixXd::Zero(n, n);
+    
+    for (int i = 0; i < p; i++) {
+        p_alpha += C_init.col(i) * C_init.col(i).transpose();
+    }
+    
+    for (int i = 0; i < q; i++) {
+        p_beta += C_init.col(i) * C_init.col(i).transpose();
+    }
+    
+    // SCF parameters
+    bool converged = false;
+    int iter = 0;
+    int max_iter = 150;
+    double damping = 0.2;  // Fixed damping
+    
+    // DIIS parameters
+    const int max_diis_dim = 5;
+    std::vector<Eigen::MatrixXd> F_alpha_list;
+    std::vector<Eigen::MatrixXd> F_beta_list;
+    std::vector<Eigen::MatrixXd> error_alpha_list;
+    std::vector<Eigen::MatrixXd> error_beta_list;
+    
+    std::cout << "Starting SCF iterations with fixed-damping DIIS..." << std::endl;
+    
+    // DIIS main loop
+    while (!converged && iter < max_iter) {
+        // Get total density
+        Eigen::MatrixXd p_total = p_alpha + p_beta;
+        
+        // Get atomwise density vector
+        Eigen::VectorXd p_total_atomwise_diag = get_p_total_atomwise_diag_vector(atoms, p_total);
+        
+        // Build Fock matrices
+        Eigen::MatrixXd F_alpha = h.replicate(1, 1);
+        Eigen::MatrixXd F_beta = h.replicate(1, 1);
+        
+        // Add two-electron terms
+        for (size_t A = 0; A < atoms.size(); A++) {
+            for (size_t B = 0; B < atoms.size(); B++) {
+                double PA = p_total_atomwise_diag(A);
+                double PB = p_total_atomwise_diag(B);
+                double ZA = get_Z(atoms.at(A));
+                double ZB = get_Z(atoms.at(B));
+                double gAB = gamma(A, B);
+                
+                if (A == B) {
+                    // Diagonal atom blocks
+                    int start_A = 0;
+                    for (size_t C = 0; C < A; C++) {
+                        start_A += static_cast<int>(PARAMETER_INFO.at(atoms.at(C).z_num).at("Valence Orbitals"));
                     }
-                    v++; 
+                    
+                    int orbitals_A = static_cast<int>(PARAMETER_INFO.at(atoms.at(A).z_num).at("Valence Orbitals"));
+                    
+                    for (int u = start_A; u < start_A + orbitals_A; u++) {
+                        // Diagonal elements
+                        F_alpha(u, u) += ((PA - ZA) - (p_alpha(u, u) - 0.5)) * gAB;
+                        F_beta(u, u) += ((PA - ZA) - (p_beta(u, u) - 0.5)) * gAB;
+                        
+                        // Off-diagonal elements within same atom
+                        for (int v = start_A; v < start_A + orbitals_A; v++) {
+                            if (u != v) {
+                                F_alpha(u, v) -= p_alpha(u, v) * gAB;
+                                F_beta(u, v) -= p_beta(u, v) * gAB;
+                            }
+                        }
+                    }
+                    
+                    // Add contributions from other atoms
+                    for (size_t C = 0; C < atoms.size(); C++) {
+                        if (C != A) {
+                            double PC = p_total_atomwise_diag(C);
+                            double ZC = get_Z(atoms.at(C));
+                            double gAC = gamma(A, C);
+                            
+                            for (int u = start_A; u < start_A + orbitals_A; u++) {
+                                F_alpha(u, u) += (PC - ZC) * gAC;
+                                F_beta(u, u) += (PC - ZC) * gAC;
+                            }
+                        }
+                    }
+                }
+                else {
+                    // Off-diagonal atom blocks
+                    int start_A = 0, start_B = 0;
+                    for (size_t C = 0; C < A; C++) {
+                        start_A += static_cast<int>(PARAMETER_INFO.at(atoms.at(C).z_num).at("Valence Orbitals"));
+                    }
+                    
+                    for (size_t C = 0; C < B; C++) {
+                        start_B += static_cast<int>(PARAMETER_INFO.at(atoms.at(C).z_num).at("Valence Orbitals"));
+                    }
+                    
+                    int orbitals_A = static_cast<int>(PARAMETER_INFO.at(atoms.at(A).z_num).at("Valence Orbitals"));
+                    int orbitals_B = static_cast<int>(PARAMETER_INFO.at(atoms.at(B).z_num).at("Valence Orbitals"));
+                    
+                    for (int u = start_A; u < start_A + orbitals_A; u++) {
+                        for (int v = start_B; v < start_B + orbitals_B; v++) {
+                            double beta_term = 0.5 * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * S(u, v);
+                            F_alpha(u, v) += beta_term - p_alpha(u, v) * gAB;
+                            F_beta(u, v) += beta_term - p_beta(u, v) * gAB;
+                        }
+                    }
                 }
             }
-            u++; 
+        }
+        
+        // Calculate DIIS error matrices
+        Eigen::MatrixXd error_alpha = F_alpha * p_alpha * S - S * p_alpha * F_alpha;
+        Eigen::MatrixXd error_beta = F_beta * p_beta * S - S * p_beta * F_beta;
+        
+        // Calculate error norm for diagnostics
+        double error_norm = error_alpha.norm() + error_beta.norm();
+        
+        // Add current F and error matrices to the DIIS lists
+        F_alpha_list.push_back(F_alpha);
+        F_beta_list.push_back(F_beta);
+        error_alpha_list.push_back(error_alpha);
+        error_beta_list.push_back(error_beta);
+        
+        // Limit list size
+        if (F_alpha_list.size() > max_diis_dim) {
+            F_alpha_list.erase(F_alpha_list.begin());
+            F_beta_list.erase(F_beta_list.begin());
+            error_alpha_list.erase(error_alpha_list.begin());
+            error_beta_list.erase(error_beta_list.begin());
+        }
+        
+        // Apply DIIS extrapolation when we have enough matrices
+        if (F_alpha_list.size() > 2) {
+            int diis_dim = F_alpha_list.size();
+            
+            // Build DIIS B matrix for alpha
+            Eigen::MatrixXd B_alpha = Eigen::MatrixXd::Zero(diis_dim + 1, diis_dim + 1);
+            for (int i = 0; i < diis_dim; i++) {
+                for (int j = 0; j < diis_dim; j++) {
+                    // Calculate error matrix dot product
+                    B_alpha(i, j) = (error_alpha_list[i].cwiseProduct(error_alpha_list[j])).sum();
+                }
+                B_alpha(diis_dim, i) = -1.0;
+                B_alpha(i, diis_dim) = -1.0;
+            }
+            B_alpha(diis_dim, diis_dim) = 0.0;
+            
+            // Build RHS vector for alpha
+            Eigen::VectorXd rhs_alpha = Eigen::VectorXd::Zero(diis_dim + 1);
+            rhs_alpha(diis_dim) = -1.0;
+            
+            // Solve linear system for coefficients
+            Eigen::VectorXd c_alpha;
+            double reg = 1e-6;  // Regularization for stability
+            bool solved = false;
+            
+            // Try solving with increasing regularization if needed
+            while (!solved && reg < 1.0) {
+                try {
+                    Eigen::MatrixXd B_reg = B_alpha;
+                    for (int i = 0; i < diis_dim; i++) {
+                        B_reg(i, i) += reg;
+                    }
+                    c_alpha = B_reg.fullPivLu().solve(rhs_alpha);
+                    solved = true;
+                } catch (...) {
+                    reg *= 10.0;
+                }
+            }
+            
+            if (!solved) {
+                // If DIIS fails, fallback to simple damping
+                std::cout << "DIIS failed for alpha, falling back to damping at iteration " << iter << std::endl;
+            } else {
+                // Extrapolate F matrix using DIIS coefficients
+                Eigen::MatrixXd F_alpha_new = Eigen::MatrixXd::Zero(n, n);
+                for (int i = 0; i < diis_dim; i++) {
+                    F_alpha_new += c_alpha(i) * F_alpha_list[i];
+                }
+                F_alpha = F_alpha_new;
+            }
+            
+            // Repeat for beta (similar process)
+            Eigen::MatrixXd B_beta = Eigen::MatrixXd::Zero(diis_dim + 1, diis_dim + 1);
+            for (int i = 0; i < diis_dim; i++) {
+                for (int j = 0; j < diis_dim; j++) {
+                    B_beta(i, j) = (error_beta_list[i].cwiseProduct(error_beta_list[j])).sum();
+                }
+                B_beta(diis_dim, i) = -1.0;
+                B_beta(i, diis_dim) = -1.0;
+            }
+            B_beta(diis_dim, diis_dim) = 0.0;
+            
+            Eigen::VectorXd rhs_beta = Eigen::VectorXd::Zero(diis_dim + 1);
+            rhs_beta(diis_dim) = -1.0;
+            
+            Eigen::VectorXd c_beta;
+            reg = 1e-6;
+            solved = false;
+            
+            while (!solved && reg < 1.0) {
+                try {
+                    Eigen::MatrixXd B_reg = B_beta;
+                    for (int i = 0; i < diis_dim; i++) {
+                        B_reg(i, i) += reg;
+                    }
+                    c_beta = B_reg.fullPivLu().solve(rhs_beta);
+                    solved = true;
+                } catch (...) {
+                    reg *= 10.0;
+                }
+            }
+            
+            if (!solved) {
+                std::cout << "DIIS failed for beta, falling back to damping at iteration " << iter << std::endl;
+            } else {
+                Eigen::MatrixXd F_beta_new = Eigen::MatrixXd::Zero(n, n);
+                for (int i = 0; i < diis_dim; i++) {
+                    F_beta_new += c_beta(i) * F_beta_list[i];
+                }
+                F_beta = F_beta_new;
+            }
+        }
+        
+        // Apply level shifting based on iteration count
+        double level_shift = std::min(1.0, 0.1 * (iter + 1) / 10.0);
+        
+        // Solve eigenvalue problem using Cholesky decomposition
+        Eigen::LLT<Eigen::MatrixXd> lltOfS(S);
+        if (lltOfS.info() != Eigen::Success) {
+            S += 1e-8 * Eigen::MatrixXd::Identity(n, n);
+            lltOfS.compute(S);
+        }
+        
+        Eigen::MatrixXd L = lltOfS.matrixL();
+        Eigen::MatrixXd Linv = L.triangularView<Eigen::Lower>().solve(Eigen::MatrixXd::Identity(n, n));
+        
+        // Transform to orthogonal basis
+        Eigen::MatrixXd F_alpha_ortho = Linv.transpose() * F_alpha * Linv;
+        Eigen::MatrixXd F_beta_ortho = Linv.transpose() * F_beta * Linv;
+        
+        // Apply level shifting to virtual orbitals
+        for (int i = p; i < n; i++) {
+            F_alpha_ortho(i, i) += level_shift;
+        }
+        
+        for (int i = q; i < n; i++) {
+            F_beta_ortho(i, i) += level_shift;
+        }
+        
+        // Solve standard eigenvalue problem in orthogonal basis
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_alpha(F_alpha_ortho);
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es_beta(F_beta_ortho);
+        
+        // Transform eigenvectors back to original basis
+        Eigen::MatrixXd C_alpha = Linv * es_alpha.eigenvectors();
+        Eigen::MatrixXd C_beta = Linv * es_beta.eigenvectors();
+        
+        // Re-normalize eigenvectors
+        for (int i = 0; i < n; i++) {
+            double norm_alpha = std::sqrt(C_alpha.col(i).transpose() * S * C_alpha.col(i));
+            double norm_beta = std::sqrt(C_beta.col(i).transpose() * S * C_beta.col(i));
+            
+            C_alpha.col(i) /= norm_alpha;
+            C_beta.col(i) /= norm_beta;
+        }
+        
+        // Build new density matrices
+        Eigen::MatrixXd p_alpha_new = Eigen::MatrixXd::Zero(n, n);
+        Eigen::MatrixXd p_beta_new = Eigen::MatrixXd::Zero(n, n);
+        
+        for (int i = 0; i < p; i++) {
+            p_alpha_new += C_alpha.col(i) * C_alpha.col(i).transpose();
+        }
+        
+        for (int i = 0; i < q; i++) {
+            p_beta_new += C_beta.col(i) * C_beta.col(i).transpose();
+        }
+        
+        // Apply fixed damping
+        Eigen::MatrixXd p_alpha_damped = damping * p_alpha_new + (1.0 - damping) * p_alpha;
+        Eigen::MatrixXd p_beta_damped = damping * p_beta_new + (1.0 - damping) * p_beta;
+        
+        // Check for convergence
+        double delta_alpha = (p_alpha_damped - p_alpha).norm();
+        double delta_beta = (p_beta_damped - p_beta).norm();
+        double delta = delta_alpha + delta_beta;
+        
+        // Apply small random perturbation to break symmetry if stuck
+        if (iter % 30 == 29 && delta > 0.05) {
+            // Create small random perturbation
+            Eigen::MatrixXd perturb_alpha = Eigen::MatrixXd::Random(n, n) * 0.001;
+            Eigen::MatrixXd perturb_beta = Eigen::MatrixXd::Random(n, n) * 0.001;
+            
+            // Make perturbation symmetric
+            perturb_alpha = 0.5 * (perturb_alpha + perturb_alpha.transpose());
+            perturb_beta = 0.5 * (perturb_beta + perturb_beta.transpose());
+            
+            // Apply perturbation
+            p_alpha_damped += perturb_alpha;
+            p_beta_damped += perturb_beta;
+            
+            std::cout << "Applied small perturbation at iteration " << iter << std::endl;
+        }
+        
+        if (verbose || iter % 10 == 0) {
+            std::cout << "Iteration " << iter << " delta: " << delta 
+                      << " (damping: " << damping 
+                      << ", DIIS dim: " << F_alpha_list.size() 
+                      << ", level shift: " << level_shift
+                      << ", error: " << error_norm << ")" << std::endl;
+        }
+        
+        if (delta < tol) {
+            converged = true;
+            std::cout << "SCF converged in " << iter+1 << " iterations." << std::endl;
+        }
+        
+        // Update density matrices
+        p_alpha = p_alpha_damped;
+        p_beta = p_beta_damped;
+        
+        iter++;
+    }
+    
+    if (!converged) {
+        std::cout << "WARNING: SCF did not converge after " << max_iter << " iterations." << std::endl;
+        std::cout << "Returning best approximate solution." << std::endl;
+    }
+    
+    return std::make_pair(p_alpha, p_beta);
+}
+// Function to calculate CNDO/S energy with simplified approach
+double E_CNDO_S_simplified(const Eigen::MatrixXd &p_alpha, const Eigen::MatrixXd &p_beta, 
+                          const std::vector<Atom> &atoms) {
+    // Get basis and matrices
+    std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms);
+    Eigen::MatrixXd S = make_overlap_matrix(vcg);
+    Eigen::MatrixXd h = get_hamiltonian(atoms);
+    Eigen::MatrixXd p_total = p_alpha + p_beta;
+    
+    // Calculate one-electron energy (core)
+    double E_one = 0.0;
+    for (int i = 0; i < h.rows(); i++) {
+        for (int j = 0; j < h.cols(); j++) {
+            E_one += p_total(i, j) * h(i, j);
         }
     }
     
-    return h; 
-}
-
-//New method to run CNDO with overlap
-std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
-run_CNDO_S(const std::vector<Atom>& atoms, int p, int q) {
-    using namespace std;
-    using namespace Eigen;
-
-    // Step 1: Build basis and overlap
-    auto basis = get_vector_of_contracted_gaussians(atoms);
-    MatrixXd S = make_overlap_matrix(basis);
-    int dim = S.rows();
-
-    // Step 2: Initial guess: core Hamiltonian diagonal
-    MatrixXd F = MatrixXd::Zero(dim, dim);
-    for (int i = 0; i < dim; i++) {
-        F(i, i) = get_half_IuAu(basis[i]);
-    }
-
-    MatrixXd P = MatrixXd::Zero(dim, dim);
-    MatrixXd C_old = MatrixXd::Zero(dim, dim);
-
-    const double SCF_TOL = 1e-8;
-    const int MAX_ITER = 100;
-
-    for (int iter = 0; iter < MAX_ITER; iter++) {
-        // Step 3: Solve generalized eigenvalue problem FC = SCε
-        GeneralizedSelfAdjointEigenSolver<MatrixXd> ges(F, S);
-        if (ges.info() != Success) {
-            throw std::runtime_error("Generalized eigensolver failed");
-        }
-
-        MatrixXd C = ges.eigenvectors();
-        VectorXd eps = ges.eigenvalues();
-
-        // Step 4: Build new density matrix
-        P = build_density_matrix(p + q, C);  // number of occupied orbitals
-
-        // Step 5: Build new Fock matrix
-        MatrixXd F_new = MatrixXd::Zero(dim, dim);
-        for (int u = 0; u < dim; u++) {
-            for (int v = 0; v < dim; v++) {
-                double H_uv = (u == v) ? get_half_IuAu(basis[u]) : get_B(atoms[u / 4]); // hacky atom guess
-                double G_uv = 0.0;
-                for (int A = 0; A < atoms.size(); A++) {
-                    for (int B = 0; B < atoms.size(); B++) {
-                        G_uv += P(u, v) * get_gamma_elem(atoms[A], atoms[B]);
-                    }
-                }
-                F_new(u, v) = H_uv + G_uv;
+    // Calculate two-electron energy
+    double E_two = 0.0;
+    Eigen::MatrixXd gamma = get_gamma(atoms);
+    Eigen::VectorXd p_total_atomwise_diag = get_p_total_atomwise_diag_vector(atoms, p_total);
+    
+    for (size_t A = 0; A < atoms.size(); A++) {
+        double PA = p_total_atomwise_diag(A);
+        double ZA = get_Z(atoms.at(A));
+        
+        // Self-interaction term
+        E_two += 0.5 * PA * (PA - ZA) * gamma(A, A);
+        
+        // Interaction with other atoms
+        for (size_t B = 0; B < atoms.size(); B++) {
+            if (A != B) {
+                double PB = p_total_atomwise_diag(B);
+                double ZB = get_Z(atoms.at(B));
+                E_two += 0.5 * (PA - ZA) * (PB - ZB) * gamma(A, B);
             }
         }
-
-        // Step 6: Check convergence
-        if (close_enough(F, F_new, SCF_TOL)) {
-            std::cout << "SCF converged in " << iter + 1 << " iterations." << std::endl;
-            return {F_new, P};
-        }
-
-        F = F_new;
     }
+    
+    // Nuclear repulsion energy
+    double E_nuc = 0.0;
+    for (size_t A = 0; A < atoms.size(); A++) {
+        for (size_t B = A + 1; B < atoms.size(); B++) {
+            E_nuc += (get_Z(atoms.at(A)) * get_Z(atoms.at(B)) / 
+                     (atoms.at(A).pos - atoms.at(B).pos).norm()) * CONVERSION_FACTOR;
+        }
+    }
+    
+    // Return total energy
+    return E_one + E_two + E_nuc;
+}
 
-    throw std::runtime_error("SCF did not converge after max iterations.");
+std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
+run_CNDO_S(const std::vector<Atom>& atoms, int p, int q, double tol = 1e-6, bool verbose = false) {
+    // Step 1: Build basis and overlap matrices
+    std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms);
+    Eigen::MatrixXd S = make_overlap_matrix(vcg);
+    Eigen::MatrixXd gamma = get_gamma(atoms);
+    int n = S.rows();
+
+    // Initial density matrices (zero)
+    Eigen::MatrixXd p_alpha = Eigen::MatrixXd::Zero(n, n);
+    Eigen::MatrixXd p_beta = Eigen::MatrixXd::Zero(n, n);
+
+    // Core Hamiltonian (one-electron part)
+    Eigen::MatrixXd h = get_hamiltonian(atoms);
+    
+    // SCF convergence parameters
+    bool converged = false;
+    int iter = 0;
+    int max_iter = 500; // Increased max iterations
+    
+    // NO PARAMETER MODIFICATIONS - using original parameters
+    
+    std::cout << "Starting SCF iterations with overlap (using original parameters)..." << std::endl;
+    
+    // Track oscillation detection
+    double prev_delta = 0.0;
+    int oscillation_counter = 0;
+    
+    while (!converged && iter < max_iter) {
+        // Use strong, constant damping
+        double damp_factor = 0.2;  // Consistent strong damping 
+        
+        // Increase damping if we detect oscillations
+        if (iter > 10 && oscillation_counter > 2) {
+            damp_factor = 0.05;  // Very strong damping to break oscillations
+        }
+        
+        // Get total density matrix
+        Eigen::MatrixXd p_total = p_alpha + p_beta;
+        
+        // Get atomwise density vector
+        Eigen::VectorXd p_total_atomwise_diag = get_p_total_atomwise_diag_vector(atoms, p_total);
+        
+        // Build Fock matrices
+        Eigen::MatrixXd F_alpha = Eigen::MatrixXd::Zero(n, n);
+        Eigen::MatrixXd F_beta = Eigen::MatrixXd::Zero(n, n);
+        
+        // Level shifting to help convergence (more aggressive with iterations)
+        double level_shift = std::min(1.0, 0.1 * std::sqrt(iter));
+        
+        // Construct Fock matrices properly accounting for overlap
+        int u = 0;
+        for (size_t A = 0; A < atoms.size(); A++) {
+            int num_A_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(A).z_num).at("Valence Orbitals"));
+            for (int index_in_A = 0; index_in_A < num_A_orbitals; index_in_A++) {
+                int v = 0;
+                for (size_t B = 0; B < atoms.size(); B++) {
+                    int num_B_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(B).z_num).at("Valence Orbitals"));
+                    for (int index_in_B = 0; index_in_B < num_B_orbitals; index_in_B++) {
+                        if (u == v) { // Diagonal elements
+                            // On-diagonal Fock elements
+                            double h_uu = get_on_diagonal_hamiltonian_element(A, u, atoms, vcg, gamma);
+                            double G_alpha = ((p_total_atomwise_diag(A) - get_Z(atoms.at(A))) - 
+                                            (p_alpha(u,u) - 0.5)) * gamma(A,A);
+                            double G_beta = ((p_total_atomwise_diag(A) - get_Z(atoms.at(A))) - 
+                                           (p_beta(u,u) - 0.5)) * gamma(A,A);
+                            
+                            // Add third term
+                            for (size_t C = 0; C < atoms.size(); C++) {
+                                if (C != A) {
+                                    G_alpha += (p_total_atomwise_diag(C) - get_Z(atoms.at(C))) * gamma(A,C);
+                                    G_beta += (p_total_atomwise_diag(C) - get_Z(atoms.at(C))) * gamma(A,C);
+                                }
+                            }
+                            
+                            // Apply level shifting to virtual orbitals
+                            F_alpha(u,u) = h_uu + G_alpha + (u >= p ? level_shift : 0.0);
+                            F_beta(u,u) = h_uu + G_beta + (u >= q ? level_shift : 0.0);
+                        } else { // Off-diagonal elements
+                            // Key modification for CNDO/S - include S_uv in resonance term
+                            double beta_term = 0.5 * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * S(u,v);
+                            double G_alpha = -p_alpha(u,v) * gamma(A,B);
+                            double G_beta = -p_beta(u,v) * gamma(A,B);
+                            
+                            F_alpha(u,v) = beta_term + G_alpha;
+                            F_beta(u,v) = beta_term + G_beta;
+                        }
+                        v++;
+                    }
+                }
+                u++;
+            }
+        }
+        
+        if (verbose) {
+            std::cout << "Iteration " << iter << " Fock matrices:" << std::endl;
+            std::cout << "F_alpha:" << std::endl << F_alpha << std::endl;
+            std::cout << "F_beta:" << std::endl << F_beta << std::endl;
+        }
+        
+        // Solve the generalized eigenvalue problem F C = S C ε
+        Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> es_alpha(F_alpha, S);
+        Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> es_beta(F_beta, S);
+        
+        if (es_alpha.info() != Eigen::Success || es_beta.info() != Eigen::Success) {
+            throw std::runtime_error("Eigenvalue solver failed");
+        }
+        
+        Eigen::MatrixXd C_alpha = es_alpha.eigenvectors();
+        Eigen::MatrixXd C_beta = es_beta.eigenvectors();
+        
+        // Build new density matrices
+        Eigen::MatrixXd p_alpha_new = build_density_matrix(p, C_alpha);
+        Eigen::MatrixXd p_beta_new = build_density_matrix(q, C_beta);
+        
+        // Apply strong damping
+        Eigen::MatrixXd p_alpha_damped = damp_factor * p_alpha_new + (1.0 - damp_factor) * p_alpha;
+        Eigen::MatrixXd p_beta_damped = damp_factor * p_beta_new + (1.0 - damp_factor) * p_beta;
+        
+        // Check for convergence
+        double delta_alpha = (p_alpha_damped - p_alpha).norm();
+        double delta_beta = (p_beta_damped - p_beta).norm();
+        double delta = delta_alpha + delta_beta;
+        
+        // Check for oscillations
+        if (iter > 0) {
+            double delta_change = std::abs(delta - prev_delta);
+            if (delta_change < 1e-4) {
+                oscillation_counter++;
+            } else {
+                oscillation_counter = 0;
+            }
+        }
+        prev_delta = delta;
+        
+        // Every 20 iterations, try to break out of potential cycles with a small perturbation
+        if (iter > 0 && iter % 20 == 0 && delta > 0.1) {
+            // Create random perturbation
+            Eigen::MatrixXd perturb_alpha = Eigen::MatrixXd::Random(n, n) * 0.001;
+            Eigen::MatrixXd perturb_beta = Eigen::MatrixXd::Random(n, n) * 0.001;
+            
+            // Apply symmetrization to perturbation
+            perturb_alpha = 0.5 * (perturb_alpha + perturb_alpha.transpose());
+            perturb_beta = 0.5 * (perturb_beta + perturb_beta.transpose());
+            
+            // Apply small random perturbation
+            p_alpha_damped += perturb_alpha;
+            p_beta_damped += perturb_beta;
+            
+            std::cout << "Applied small perturbation at iteration " << iter << std::endl;
+        }
+        
+        if (verbose || iter % 10 == 0) {
+            std::cout << "Iteration " << iter << " delta: " << delta 
+                      << " (damping factor: " << damp_factor;
+            if (level_shift > 0.0) {
+                std::cout << ", level shift: " << level_shift;
+            }
+            std::cout << ")" << std::endl;
+        }
+        
+        if (delta < tol) {
+            converged = true;
+            std::cout << "SCF converged in " << iter+1 << " iterations." << std::endl;
+        }
+        
+        // Update density matrices for next iteration
+        p_alpha = p_alpha_damped;
+        p_beta = p_beta_damped;
+        
+        iter++;
+    }
+    
+    if (!converged) {
+        std::cout << "WARNING: SCF did not converge after " << max_iter << " iterations." << std::endl;
+        std::cout << "Returning best approximate solution..." << std::endl;
+    }
+    
+    return std::make_pair(p_alpha, p_beta);
+}
+
+double E_CNDO_S(const Eigen::MatrixXd &p_alpha, const Eigen::MatrixXd &p_beta, 
+               const std::vector<Atom> &atoms) {
+    // Get basis and overlap matrices
+    std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms);
+    Eigen::MatrixXd S = make_overlap_matrix(vcg);
+    
+    // Get total density matrix
+    Eigen::MatrixXd p_total = p_alpha + p_beta;
+    
+    // Get core Hamiltonian and Fock matrices
+    Eigen::MatrixXd h = get_hamiltonian(atoms);
+    Eigen::MatrixXd gamma = get_gamma(atoms);
+    
+    // Calculate nuclear-nuclear repulsion energy
+    double nuclear_energy = 0.0;
+    for (size_t A = 0; A < atoms.size(); A++) {
+        for (size_t B = A + 1; B < atoms.size(); B++) {
+            nuclear_energy += (get_Z(atoms.at(A)) * get_Z(atoms.at(B))) / 
+                             (atoms.at(A).pos - atoms.at(B).pos).norm();
+        }
+    }
+    nuclear_energy *= CONVERSION_FACTOR;
+    
+    // Calculate electronic energy using a more careful approach
+    double elec_energy = 0.0;
+    
+    // Build one and two-electron matrices directly from first principles
+    Eigen::MatrixXd F_alpha = Eigen::MatrixXd::Zero(p_alpha.rows(), p_alpha.cols());
+    Eigen::MatrixXd F_beta = Eigen::MatrixXd::Zero(p_beta.rows(), p_beta.cols());
+    
+    // Get atomwise density diagonal vector
+    Eigen::VectorXd p_total_atomwise_diag = get_p_total_atomwise_diag_vector(atoms, p_total);
+    
+    // Build Fock matrices exactly as in SCF
+    int n = S.rows();
+    int u = 0;
+    for (size_t A = 0; A < atoms.size(); A++) {
+        int num_A_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(A).z_num).at("Valence Orbitals"));
+        for (int index_in_A = 0; index_in_A < num_A_orbitals; index_in_A++) {
+            int v = 0;
+            for (size_t B = 0; B < atoms.size(); B++) {
+                int num_B_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(B).z_num).at("Valence Orbitals"));
+                for (int index_in_B = 0; index_in_B < num_B_orbitals; index_in_B++) {
+                    if (u == v) { // Diagonal elements
+                        // On-diagonal Fock elements
+                        double h_uu = get_on_diagonal_hamiltonian_element(A, u, atoms, vcg, gamma);
+                        double G_alpha = ((p_total_atomwise_diag(A) - get_Z(atoms.at(A))) - 
+                                        (p_alpha(u,u) - 0.5)) * gamma(A,A);
+                        double G_beta = ((p_total_atomwise_diag(A) - get_Z(atoms.at(A))) - 
+                                       (p_beta(u,u) - 0.5)) * gamma(A,A);
+                        
+                        // Add third term
+                        for (size_t C = 0; C < atoms.size(); C++) {
+                            if (C != A) {
+                                G_alpha += (p_total_atomwise_diag(C) - get_Z(atoms.at(C))) * gamma(A,C);
+                                G_beta += (p_total_atomwise_diag(C) - get_Z(atoms.at(C))) * gamma(A,C);
+                            }
+                        }
+                        
+                        F_alpha(u,u) = h_uu + G_alpha;
+                        F_beta(u,u) = h_uu + G_beta;
+                    } else { // Off-diagonal elements
+                        // Key modification for CNDO/S - include S_uv in resonance term
+                        double beta_term = 0.5 * (get_B(atoms.at(A)) + get_B(atoms.at(B))) * S(u,v);
+                        double G_alpha = -p_alpha(u,v) * gamma(A,B);
+                        double G_beta = -p_beta(u,v) * gamma(A,B);
+                        
+                        F_alpha(u,v) = beta_term + G_alpha;
+                        F_beta(u,v) = beta_term + G_beta;
+                    }
+                    v++;
+                }
+            }
+            u++;
+        }
+    }
+    
+    // Calculate energy using core Hamiltonian and Fock matrices
+    double e_one = 0.0;
+    double e_two = 0.0;
+    
+    for (int u = 0; u < n; u++) {
+        for (int v = 0; v < n; v++) {
+            // One-electron terms - use core Hamiltonian directly
+            // Note: Not multiplying by overlap here as we're using pure CNDO/2 energy expression
+            e_one += (p_alpha(u,v) + p_beta(u,v)) * h(u,v);
+            
+            // Two-electron terms - difference between Fock and core Hamiltonian
+            e_two += 0.5 * p_alpha(u,v) * (F_alpha(u,v) - h(u,v));
+            e_two += 0.5 * p_beta(u,v) * (F_beta(u,v) - h(u,v));
+        }
+    }
+    
+    elec_energy = e_one + e_two;
+    
+    // Print diagnostic info
+    std::cout << "Energy components:" << std::endl;
+    std::cout << "One-electron energy: " << e_one << " eV" << std::endl;
+    std::cout << "Two-electron energy: " << e_two << " eV" << std::endl;
+    std::cout << "Electronic energy: " << elec_energy << " eV" << std::endl;
+    std::cout << "Nuclear energy: " << nuclear_energy << " eV" << std::endl;
+    
+    return elec_energy;
 }
 
 // runs CNDO2 till convergence and returns the density matricies 
@@ -933,85 +1412,6 @@ std::pair<Eigen::MatrixXd,Eigen::MatrixXd> run_CNDO2(
         Eigen::MatrixXd p_total = p_alpha + p_beta; 
         Eigen::MatrixXd fock_alpha = get_fock(atoms, p_total, p_alpha);
         Eigen::MatrixXd fock_beta  = get_fock(atoms, p_total, p_beta); 
-
-        if (verbose){
-            std::cout << "Fa" << std::endl; 
-            std::cout << fock_alpha << std::endl; 
-
-            std::cout << "Fb" << std::endl;
-            std::cout << fock_beta << std::endl; 
-        }
-       
-
-        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Solver_alpha(fock_alpha);
-        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> Solver_beta(fock_beta);
-
-        if (verbose){
-            std::cout << "after solving eigen equation: " << count << std::endl; 
-        }
-
-        Eigen::MatrixXd c_alpha = Solver_alpha.eigenvectors().real(); 
-        Eigen::MatrixXd c_beta  = Solver_beta.eigenvectors().real(); 
-
-        if (verbose){
-            std::cout << "Ca" << std::endl; 
-            std::cout << c_alpha << std::endl; 
-
-            std::cout << "Cb" << std::endl; 
-            std::cout << c_beta << std::endl; 
-        }
-
-        Eigen::MatrixXd p_alpha_old (p_alpha); 
-        Eigen::MatrixXd p_beta_old  (p_beta); 
-
-        if (verbose) {
-            std::cout << " p = " << p << ", q = " << q << std::endl;
-        }
-
-        p_alpha = build_density_matrix(p, c_alpha); 
-        p_beta  = build_density_matrix(q, c_beta); 
-
-        if (verbose) {
-            std::cout << "Pa_new" << std::endl; 
-            std::cout << p_alpha  << std::endl; 
-            std::cout << "Pb_new" << std::endl;
-            std::cout << p_beta   << std::endl;  
-        }
-
-        if (close_enough(p_alpha, p_alpha_old, tol) && close_enough(p_beta, p_beta_old, tol)) {
-            converged = true; 
-        } else {
-            count++; 
-        }
-    }
-    return std::make_pair(p_alpha, p_beta); 
-}
-
-// runs MINDO/3 till convergence and returns the density matricies 
-std::pair<Eigen::MatrixXd,Eigen::MatrixXd> run_MINDO3(
-    const std::vector<Atom> &atoms, 
-    const int p, 
-    const int q, 
-    const double tol = 1e-6, 
-    const bool verbose = false
-    ) 
-{
-    int total_valence_orbitals = get_total_valence_orbitals(atoms); 
-
-    Eigen::MatrixXd p_alpha = Eigen::MatrixXd::Zero(total_valence_orbitals, total_valence_orbitals); 
-    Eigen::MatrixXd p_beta  = Eigen::MatrixXd::Zero(total_valence_orbitals, total_valence_orbitals); 
-
-    bool converged = false; 
-    int count = 0; 
-
-    while (!converged && (count < 100)) {
-        if (verbose){ 
-            std::cout << "Iteration: " << count << std::endl; 
-        }
-
-        Eigen::MatrixXd p_total = p_alpha + p_beta; 
-        Eigen::MatrixXd fock_alpha = get_fock_mindo(atoms, p_total, p_alpha);
-        Eigen::MatrixXd fock_beta  = get_fock_mindo(atoms, p_total, p_beta); 
 
         if (verbose){
             std::cout << "Fa" << std::endl; 
@@ -1208,7 +1608,6 @@ double E_MINDO3(
     energy += get_nuclear_repulsion_energy(atoms);  
     return energy; 
 }
-
 
 double get_x_element(int u, int v, int A, int B, const std::vector<Atom> &atoms, const Eigen::MatrixXd &p_total){
     return (get_B(atoms.at(A)) + get_B(atoms.at(B))) * p_total(u,v); 
