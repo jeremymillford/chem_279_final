@@ -302,7 +302,7 @@ std::vector<std::tuple<int,int,double>> compute_bond_distances(const std::vector
     return bonds;
 }
 
-void write_distances_to_csv(std::string infile, std::vector<std::tuple<int,int,double>> bond_distances, std::string model_type) {
+void write_distances_to_csv(std::string infile, int iteration, std::vector<std::tuple<int,int,double>> bond_distances, std::string model_type) {
     
     std::filesystem::path p(infile);
     std::string outfile;
@@ -316,13 +316,14 @@ void write_distances_to_csv(std::string infile, std::vector<std::tuple<int,int,d
         std::exit(1);
     }
     
-    if (!file_exists) csv << "atom1_index, atom2_index, distance_angstrom\n";
+    if (!file_exists) csv << "iter,atom1_index,atom2_index,distance_angstrom\n";
 
     for (auto &t : bond_distances) {
         int i, j;
         double d;
         std::tie(i, j, d) = t;
-        csv << i << ',' 
+        csv << iteration << ','
+            << i << ',' 
             << j << ','
             << d << '\n';
     }
@@ -673,7 +674,7 @@ Eigen::MatrixXd get_fock_mindo(
 
     std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms); // Vector of contracted Gaussians
     Eigen::MatrixXd gamma = get_gamma(atoms); 
-    // Eigen::VectorXd p_total_atomwise_diag_vector = get_p_total_atomwise_diag_vector(atoms, p_total);
+    Eigen::VectorXd p_total_atomwise_diag_vector = get_p_total_atomwise_diag_vector(atoms, p_total);
     Eigen::MatrixXd s = make_overlap_matrix(vcg); 
 
     std::vector<double> q_orb;
@@ -705,7 +706,7 @@ Eigen::MatrixXd get_fock_mindo(
                             double Z_C = get_Z(atoms[C]);
                             pairwise_term += (q_atom[C] - Z_C) * gamma(A, C);
                         }
-                        f(u,u) = -Ucore + self_interaction * gamma(A, A) + pairwise_term;
+                        f(u,u) = Ucore + self_interaction * gamma(A, A) + pairwise_term;
                     } else { // Off Diagonal
                         f(u,v) = get_off_diagonal_fock_element_mindo(A, B, u, v, atoms, s, p_spin, gamma); 
                     }
@@ -1207,7 +1208,6 @@ double E_MINDO3(
     energy += get_nuclear_repulsion_energy(atoms);  
     return energy; 
 }
-
 
 
 double get_x_element(int u, int v, int A, int B, const std::vector<Atom> &atoms, const Eigen::MatrixXd &p_total){
