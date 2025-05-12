@@ -1,7 +1,7 @@
 #include <Eigen/Dense> 
 #include <iomanip>
 #include <numeric>
-
+ 
 #include "hw5_utils.cpp"
 #include "Gaussian.cpp"
 #include "Integrator.cpp"
@@ -12,8 +12,12 @@ int main(int argc, char** argv){
     }
 
     std::string filepath = argv[1];
+    std::string model_type = argv[4];
     std::vector<Atom> atoms = parse_file(filepath, false);
+    auto bond_distances_start = compute_bond_distances(atoms);
     auto vcg = get_vector_of_contracted_gaussians(atoms); 
+
+    write_distances_to_csv(filepath, bond_distances_start, model_type);
 
     int p, q = 0; 
     if (argc == 4 || argc == 5){
@@ -28,26 +32,39 @@ int main(int argc, char** argv){
     }
 
     // === NEW: Overlap flag handling ===
-    bool use_overlap = false;
-    if (argc == 5 && std::string(argv[4]) == "--overlap") {
-        use_overlap = true;
-    }
-
-    // === NEW: Run CNDO or CNDO+S based on flag ===
     std::pair<Eigen::MatrixXd, Eigen::MatrixXd> res;
-    if (use_overlap) {
-        res = run_CNDO_S(atoms, p, q);
-        std::cout << "[CNDO/S] Using overlap matrix (S ≠ I)" << std::endl;
-    } else {
-        res = run_CNDO2(atoms, p, q);
-        std::cout << "[CNDO/2] Using orthonormal basis (S = I)" << std::endl;
-    }
-
-    auto p_alpha = res.first; 
-    auto p_beta = res.second; 
     double nuclear_energy = get_nuclear_repulsion_energy(atoms); 
-    double total_energy = E_CNDO2(p_alpha, p_beta, atoms); 
+    double total_energy;
+
+    if (argc == 5) {
+        // === NEW: Run CNDO or CNDO+S or MINDO+3 based on flag ===
+        if (model_type == "CNDOS") {
+            res = run_CNDO_S(atoms, p, q);
+            std::cout << "[CNDO/S] Using overlap matrix (S ≠ I)" << std::endl;
+        } 
+        else if (model_type == "CNDO2") {
+            res = run_CNDO2(atoms, p, q);
+            std::cout << "[CNDO/2] Using orthonormal basis (S = I)" << std::endl;
+        }
+        else if (model_type == "MINDO") {
+            res = run_MINDO3(atoms, p, q);
+            std::cout << "[MINDO/3]" << std::endl;
+        }
+        else {
+            std::cerr << "Unknown model type: " << model_type << std::endl;
+                std::cerr << "Valid options are: CNDO2, CNDOS, MINDO" << std::endl;
+        }
+    }
     
+    Eigen::MatrixXd p_alpha = res.first;
+    Eigen::MatrixXd p_beta = res.second;
+    if (model_type == "MINDO") {
+        total_energy = E_MINDO3(p_alpha, p_beta, atoms);
+    }
+    else {
+        total_energy = E_CNDO2(p_alpha, p_beta, atoms);
+    }
+   
     const int n = vcg.size(); 
     const int N = atoms.size();
 
