@@ -1,0 +1,36 @@
+Loaded molecule: hydrocarbon_structures/H2.txt
+Number of atoms: 2
+Alpha electrons: 1, Beta electrons: 1
+[CNDO/2] Using orthonormal basis (S = I)
+
+Energy Results:
+-------------------------------
+Nuclear Repulsion Energy: 19.458667 eV
+Electronic Energy: -60.033774 eV
+Total Energy: -40.575107 eV
+-------------------------------
+x
+-18.000000 -18.000000
+-18.000000 -18.000000
+y
+-1.500000 -1.500000
+-1.500000 -1.500000
+Suv_RA (A is the center of u)
+s 00/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 01/dR_A is: x:+0.3463 y:+0.0000 z: +0.0000
+s 10/dR_A is: x:-0.3463 y:+0.0000 z: +0.0000
+s 11/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+gammaAB_RA
+gamma 00/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+gamma 01/dR_A is: x:+5.4161 y:+0.0000 z: +0.0000
+gamma 10/dR_A is: x:-5.4161 y:+0.0000 z: +0.0000
+gamma 11/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+gradient (Nuclear part)
+x: +13.9150 y: +0.0000 z: +0.0000
+x: -13.9150 y: +0.0000 z: +0.0000
+gradient (Electron part)
+x: -14.3569 y: +0.0000 z: +0.0000
+x: +14.3569 y: +0.0000 z: +0.0000
+gradient
+x: -0.4420 y: +0.0000 z: +0.0000
+x: +0.4420 y: +0.0000 z: +0.0000

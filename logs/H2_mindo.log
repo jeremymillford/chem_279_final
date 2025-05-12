@@ -1,0 +1,29 @@
+Wrote 0 bonds to ../bond_distances_MINDO_H2.csv
+[MINDO/3]
+Nuclear Repulsion Energy is 19.459 eV.
+Electron Energy is -38.1483 eV.
+x
+-18 -18
+-18 -18
+y
+-1.5 -1.5
+-1.5 -1.5
+Suv_RA (A is the center of u)
+s 00/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 01/dR_A is: x:+0.3463 y:+0.0000 z: +0.0000
+s 10/dR_A is: x:-0.3463 y:+0.0000 z: +0.0000
+s 11/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+gammaAB_RA
+gamma 00/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+gamma 01/dR_A is: x:+5.4162 y:+0.0000 z: +0.0000
+gamma 10/dR_A is: x:-5.4162 y:+0.0000 z: +0.0000
+gamma 11/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+gradient (Nuclear part)
+x: +13.9152 y: +0.0000 z: +0.0000
+x: -13.9152 y: +0.0000 z: +0.0000
+gradient (Electron part)
+x: -14.3570 y: +0.0000 z: +0.0000
+x: +14.3570 y: +0.0000 z: +0.0000
+gradient
+x: -0.4419 y: +0.0000 z: +0.0000
+x: +0.4419 y: +0.0000 z: +0.0000

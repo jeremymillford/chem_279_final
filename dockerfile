@@ -27,7 +27,7 @@ RUN make
 ENV EIGEN3_INCLUDE_DIR=/usr/include/eigen3
 
 # Set the working directory to the Bin directory
-WORKDIR /app/Bin
+WORKDIR /app/
 
 # Command to provide a bash shell for interactive use
 CMD ["/bin/bash"]

@@ -1,0 +1,54 @@
+Loaded molecule: hydrocarbon_structures/H2.txt
+Number of atoms: 2
+Alpha electrons: 1, Beta electrons: 1
+[CNDO/S Simplified] Using overlap matrix with simplified model
+Starting SCF iterations with fixed-damping DIIS...
+Iteration 0 delta: 0.564446 (damping: 0.2, DIIS dim: 1, level shift: 0.01, error: 0)
+Iteration 10 delta: 0.0570708 (damping: 0.2, DIIS dim: 5, level shift: 0.11, error: 31.48)
+Iteration 20 delta: 0.00626265 (damping: 0.2, DIIS dim: 5, level shift: 0.21, error: 34.8095)
+Iteration 30 delta: 0.000903424 (damping: 0.2, DIIS dim: 5, level shift: 0.31, error: 35.1654)
+Iteration 40 delta: 0.0316073 (damping: 0.2, DIIS dim: 5, level shift: 0.41, error: 22.1948)
+Iteration 50 delta: 0.00177906 (damping: 0.2, DIIS dim: 5, level shift: 0.51, error: 21.2628)
+Iteration 60 delta: 0.000223618 (damping: 0.2, DIIS dim: 5, level shift: 0.61, error: 21.1419)
+Iteration 70 delta: 0.00142497 (damping: 0.2, DIIS dim: 5, level shift: 0.71, error: 20.8369)
+Iteration 80 delta: 0.000956394 (damping: 0.2, DIIS dim: 5, level shift: 0.81, error: 20.6713)
+Iteration 90 delta: 0.00088718 (damping: 0.2, DIIS dim: 5, level shift: 0.91, error: 20.5403)
+Iteration 100 delta: 0.0007255 (damping: 0.2, DIIS dim: 5, level shift: 1, error: 20.4114)
+Iteration 110 delta: 0.000273218 (damping: 0.2, DIIS dim: 5, level shift: 1, error: 20.3928)
+Iteration 120 delta: 0.000387437 (damping: 0.2, DIIS dim: 5, level shift: 1, error: 20.4237)
+Iteration 130 delta: 9.5038e-05 (damping: 0.2, DIIS dim: 5, level shift: 1, error: 20.3806)
+Iteration 140 delta: 0.00114997 (damping: 0.2, DIIS dim: 5, level shift: 1, error: 20.4397)
+WARNING: SCF did not converge after 150 iterations.
+Returning best approximate solution.
+
+Energy Results:
+-------------------------------
+Nuclear Repulsion Energy: 19.458667 eV
+Electronic Energy: -54.593673 eV
+Total Energy: -35.135006 eV
+-------------------------------
+x
+ -8.739223  22.243759
+ 22.243759 -56.616853
+y
+-0.853164 -2.867329
+-2.867329 -1.344052
+Suv_RA (A is the center of u)
+s 00/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+s 01/dR_A is: x:+0.3463 y:+0.0000 z: +0.0000
+s 10/dR_A is: x:-0.3463 y:+0.0000 z: +0.0000
+s 11/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+gammaAB_RA
+gamma 00/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+gamma 01/dR_A is: x:+5.4161 y:+0.0000 z: +0.0000
+gamma 10/dR_A is: x:-5.4161 y:+0.0000 z: +0.0000
+gamma 11/dR_A is: x:+0.0000 y:+0.0000 z: +0.0000
+gradient (Nuclear part)
+x: +13.9150 y: +0.0000 z: +0.0000
+x: -13.9150 y: +0.0000 z: +0.0000
+gradient (Electron part)
+x: -7.8276 y: +0.0000 z: +0.0000
+x: +7.8276 y: +0.0000 z: +0.0000
+gradient
+x: +6.0873 y: +0.0000 z: +0.0000
+x: -6.0873 y: +0.0000 z: +0.0000
