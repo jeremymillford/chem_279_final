@@ -188,6 +188,108 @@ int get_total_valence_electrons(const std::vector<Atom> atoms){
     return sum; 
 }
 
+// MINDO/3 Specific Functions
+// Get one-eletron core for basis
+double get_U(const ContractedGaussian &cg) {
+  // s‐shell?
+  if (cg.gaussians.front().power.sum()==0)
+    return PARAMETER_INFO.at(cg.z_num).at("U_s");
+  else  // p‐shell
+    return PARAMETER_INFO.at(cg.z_num).at("U_p");
+}
+
+// get the b_AB for a pair of atoms A and B
+double get_b_factor(const Atom &A, const Atom &B) {
+  auto key = std::minmax(A.z_num,B.z_num);
+  return BETA_FACTOR.at(key);
+}
+
+bool is_bond(int Zi, int Zj, double dist) {
+    double rsum = cov_rad.at(Zi) + cov_rad.at(Zj) + 0.4; 
+    return dist > 0.4 && dist < rsum;
+}
+
+std::vector<std::tuple<int,int,double>> compute_bond_distances(const std::vector<Atom> &atoms) {
+    std::vector<std::tuple<int,int,double>> dists;
+    int n = atoms.size();
+    dists.reserve(n*(n-1)/2);
+    for (int i = 0; i < n; ++i) {
+        // pack Atom’s coords into an Eigen vector
+        Eigen::Vector3d ri(atoms[i].pos[0], atoms[i].pos[1], atoms[i].pos[2]);
+        for (int j = i+1; j < n; ++j) {
+            Eigen::Vector3d rj(atoms[j].pos[0], atoms[j].pos[1], atoms[j].pos[2]);
+            double dij = (ri - rj).norm();
+            dists.emplace_back(i, j, dij);
+        }
+    }
+
+    std::vector<std::tuple<int,int,double>> bonds;
+    for (auto &t : dists) {
+        int i,j; double d;
+        std::tie(i,j,d) = t;
+        if (is_bond(atoms[i].z_num, atoms[j].z_num, d))
+            bonds.push_back(t);
+    }
+
+    return bonds;
+}
+
+void write_distances_to_csv(std::string infile, int iteration, std::vector<std::tuple<int,int,double>> bond_distances, std::string model_type) {
+    
+    std::filesystem::path p(infile);
+    std::string outfile;
+    outfile = "../bond_distances_" + model_type + "_" + p.stem().string() + ".csv";
+
+    bool file_exists = std::filesystem::exists(outfile);
+
+    std::ofstream csv(outfile, std::ios::out | std::ios::app);
+    if (!csv) {
+        std::cerr << "Error: Could not open CSV file to write.";
+        std::exit(1);
+    }
+    
+    if (!file_exists) csv << "iter,atom1_index,atom2_index,distance_angstrom\n";
+
+    for (auto &t : bond_distances) {
+        int i, j;
+        double d;
+        std::tie(i, j, d) = t;
+        csv << iteration << ','
+            << i << ',' 
+            << j << ','
+            << d << '\n';
+    }
+
+    csv.close();
+    std::cout << "Wrote " << bond_distances.size() << " bonds to " << outfile << std::endl;
+}
+
+// computes Mulliken orbitals and atoms
+void compute_mulliken_populations(
+    const Eigen::MatrixXd &p_total,
+    const Eigen::MatrixXd &S,
+    const std::vector<Atom> &atoms,
+    std::vector<double> &q_orb,
+    Eigen::VectorXd &q_atom) {
+
+    int N = p_total.rows();
+    q_orb.assign(N, 0.0);
+
+    // q_i = ∑_j P_tot(i,j) · S(i,j)
+    for (int i = 0; i < N; ++i)
+      for (int j = 0; j < N; ++j)
+        q_orb[i] += p_total(i,j) * S(i,j);
+
+    // q_A = ∑_{i ∈ A} q_i
+    q_atom = Eigen::VectorXd::Zero(atoms.size());
+    int idx = 0;
+    for (int A = 0; A < atoms.size(); ++A) {
+      int nA = static_cast<int>(PARAMETER_INFO.at(atoms[A].z_num).at("Valence Orbitals"));
+      for (int k = 0; k < nA; ++k)
+        q_atom[A] += q_orb[idx++];
+    }
+}
+
 // Helper lookup function to build the density matrix 
 Eigen::MatrixXd build_density_matrix(const int count, const Eigen::MatrixXd &c){
     const int n = c.rows(); 
@@ -466,6 +568,64 @@ Eigen::MatrixXd get_fock(
 
     return f; 
 }
+
+
+Eigen::MatrixXd get_fock_mindo(
+        const std::vector<Atom> &atoms, 
+        const Eigen::MatrixXd &p_total, 
+        const Eigen::MatrixXd &p_spin)
+    {
+    const int N = get_total_valence_orbitals(atoms); 
+    Eigen::MatrixXd f = Eigen::MatrixXd::Zero(N,N); // Fock Matrix
+
+    std::vector<ContractedGaussian> vcg = get_vector_of_contracted_gaussians(atoms); // Vector of contracted Gaussians
+    Eigen::MatrixXd gamma = get_gamma(atoms); 
+    Eigen::VectorXd p_total_atomwise_diag_vector = get_p_total_atomwise_diag_vector(atoms, p_total);
+    Eigen::MatrixXd s = make_overlap_matrix(vcg); 
+
+    std::vector<double> q_orb;
+    Eigen::VectorXd q_atom;
+
+    compute_mulliken_populations(p_total, s, atoms, q_orb, q_atom);
+    
+    int u = 0; 
+    for(int A = 0; A < atoms.size(); A++){ 
+        int num_A_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(A).z_num).at("Valence Orbitals")); 
+        for (int index_in_A = 0; index_in_A < num_A_orbitals; index_in_A++){
+            // Iterating through u, first through atoms, then through contracted gaussians 
+            int v = 0; 
+            for (int B = 0; B < atoms.size(); B++){
+                int num_B_orbitals = static_cast<int>(PARAMETER_INFO.at(atoms.at(B).z_num).at("Valence Orbitals"));
+                for (int index_in_B = 0; index_in_B < num_B_orbitals; index_in_B++){
+                    // Iterating through v, first through atoms, then through contracted gaussians
+                    if (u == v) { // On Diagonal 
+                        double Ucore = get_half_IuAu(vcg[u]);
+                        double Z_A = get_Z(atoms[A]);
+                        double q_i = q_orb[u];
+                        double q_A = q_atom[A];
+
+                        double self_interaction = (q_A - Z_A) - (q_i - 0.5);
+
+                        double pairwise_term = 0.0;
+                        for (int C = 0; C < atoms.size(); C++) {
+                            if (C == A) { continue; }
+                            double Z_C = get_Z(atoms[C]);
+                            pairwise_term += (q_atom[C] - Z_C) * gamma(A, C);
+                        }
+                        f(u,u) = Ucore + self_interaction * gamma(A, A) + pairwise_term;
+                    } else { // Off Diagonal
+                        f(u,v) = get_off_diagonal_fock_element_mindo(A, B, u, v, atoms, s, p_spin, gamma); 
+                    }
+                    v++; 
+                }
+            }
+            u++; 
+        }
+    }
+
+    return f; 
+}
+
 
 // Helper to get the third term of 1.4 
 double get_third_term_of_2_6(
@@ -1433,6 +1593,21 @@ double E_CNDO2(
     return energy; 
 }
 
+double E_MINDO3(
+    const Eigen::MatrixXd &p_alpha, 
+    const Eigen::MatrixXd &p_beta, 
+    const std::vector<Atom> &atoms
+){
+    Eigen::MatrixXd p_total = p_alpha + p_beta; 
+    Eigen::MatrixXd h = get_hamiltonian_mindo(atoms); 
+    Eigen::MatrixXd f_alpha = get_fock_mindo(atoms, p_total, p_alpha); 
+    Eigen::MatrixXd f_beta  = get_fock_mindo(atoms, p_total, p_beta); 
+    double energy = 0;
+    energy += ((0.5) * E_spin(p_alpha, h, f_alpha)); 
+    energy += ((0.5) * E_spin(p_beta , h, f_beta ));
+    energy += get_nuclear_repulsion_energy(atoms);  
+    return energy; 
+}
 
 double get_x_element(int u, int v, int A, int B, const std::vector<Atom> &atoms, const Eigen::MatrixXd &p_total){
     return (get_B(atoms.at(A)) + get_B(atoms.at(B))) * p_total(u,v); 
