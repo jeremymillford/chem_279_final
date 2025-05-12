@@ -17,7 +17,7 @@ int main(int argc, char** argv){
     auto bond_distances_start = compute_bond_distances(atoms);
     auto vcg = get_vector_of_contracted_gaussians(atoms); 
 
-    write_distances_to_csv(filepath, bond_distances_start, model_type);
+    write_distances_to_csv(filepath, 0, bond_distances_start, model_type);
 
     int p, q = 0; 
     if (argc == 4 || argc == 5){
