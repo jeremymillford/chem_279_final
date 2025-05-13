@@ -27,7 +27,7 @@ if you would like to run an indivdual test
 binaries are "cndos" and "mindo". Our methods were different so pay close attention to the file paths/location needed to run the different models.
 
 ```
-root@ca3c86ea61c8:/app# Bin/mindo hydrocarbon_structures/CH4.txt 4 4 MINDO
+root@ca3c86ea61c8:/app/Bin# ./mindo ../hydrocarbon_structures/CH4.txt 4 4 MINDO
 ```
 
 ```
